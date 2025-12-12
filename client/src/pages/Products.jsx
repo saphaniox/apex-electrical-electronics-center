@@ -706,7 +706,7 @@ function Products() {
               name="name"
               rules={[{ required: true, message: 'Please enter product name' }]}
             >
-              <Input placeholder="e.g., Samsung Galaxy S21" />
+              <Input placeholder="e.g., Phase Monitor 3-Phase" />
             </Form.Item>
 
             <Form.Item
@@ -714,7 +714,7 @@ function Products() {
               name="sku"
               rules={[{ required: true, message: 'Please enter SKU' }]}
             >
-              <Input placeholder="e.g., SGS21-001" />
+              <Input placeholder="e.g., PM3P-001" />
             </Form.Item>
 
             <Form.Item
