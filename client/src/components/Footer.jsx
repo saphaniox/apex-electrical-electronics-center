@@ -9,7 +9,7 @@ function Footer() {
       <div style={{ marginBottom: '8px' }}>
         <strong style={{ color: '#333', fontSize: '15px' }}>Apex Electrical & Electronics Center</strong>
         <br />
-        <span style={{ fontSize: '13px' }}>Maya Nanziga, Kampala, Uganda</span>
+        <span style={{ fontSize: '13px' }}>Maya Nanziga, Kampala Uganda</span>
       </div>
       <p style={{ margin: 0 }}>
         Designed and powered by{' '}
