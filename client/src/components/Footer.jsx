@@ -6,6 +6,11 @@ const { Footer: AntFooter } = Layout
 function Footer() {
   return (
     <AntFooter style={{ textAlign: 'center', background: '#fafafa', borderTop: '1px solid #f0f0f0', padding: '16px 24px', fontSize: '14px', color: '#666' }}>
+      <div style={{ marginBottom: '8px' }}>
+        <strong style={{ color: '#333', fontSize: '15px' }}>Apex Electrical & Electronics Center</strong>
+        <br />
+        <span style={{ fontSize: '13px' }}>Kampala, Uganda</span>
+      </div>
       <p style={{ margin: 0 }}>
         Designed and powered by{' '}
         <a
