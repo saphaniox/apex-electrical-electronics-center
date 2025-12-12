@@ -81,16 +81,18 @@ router.get('/stock-status', authenticate, async (req, res) => {
 router.get('/top-products', authenticate, async (req, res) => {
   try {
     const db = getDatabase();
-    const orderItemsCollection = db.collection('order_items');
+    const salesOrdersCollection = db.collection('sales_orders');
     
-    const topProducts = await orderItemsCollection
+    const topProducts = await salesOrdersCollection
       .aggregate([
+        { $match: { status: { $in: ['pending', 'completed'] } } },
+        { $unwind: '$items' },
         {
           $group: {
-            _id: '$product_id',
-            product_name: { $first: '$product_name' },
-            total_quantity: { $sum: '$quantity' },
-            total_revenue: { $sum: '$item_total' }
+            _id: '$items.product_id',
+            product_name: { $first: '$items.product_name' },
+            total_quantity: { $sum: '$items.quantity' },
+            total_revenue: { $sum: '$items.item_total' }
           }
         },
         { $sort: { total_quantity: -1 } },
@@ -366,9 +368,7 @@ router.get('/analytics/period', authenticate, async (req, res) => {
 router.get('/profit-analytics', authenticate, async (req, res) => {
   try {
     const db = getDatabase();
-    const productsCollection = db.collection('products');
     const salesOrdersCollection = db.collection('sales_orders');
-    const orderItemsCollection = db.collection('order_items');
 
     // Get period from query params (default to 'all')
     const period = req.query.period || 'all';
@@ -399,78 +399,55 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
     }
 
     // Build date filter for sales orders
-    const dateFilter = period === 'all' ? {} : {
-      order_date: { $gte: startDate.toISOString().split('T')[0] }
+    const matchStage = {
+      status: { $in: ['pending', 'completed'] }
     };
 
-    // Get sales data with product details from order_items
-    const salesData = await orderItemsCollection.aggregate([
-      {
-        $lookup: {
-          from: 'sales_orders',
-          localField: 'order_id',
-          foreignField: '_id',
-          as: 'order'
-        }
-      },
-      { $unwind: '$order' },
-      {
-        $match: {
-          'order.status': { $in: ['pending', 'completed'] },
-          ...Object.keys(dateFilter).length > 0 && { 'order.order_date': dateFilter.order_date }
-        }
-      },
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'product_id',
-          foreignField: '_id',
-          as: 'product'
-        }
-      },
-      { $unwind: '$product' },
-      {
-        $addFields: {
-          unit_price: {
-            $cond: [
-              { $eq: [{ $type: '$unit_price' }, 'decimal'] },
-              { $toDouble: '$unit_price' },
-              { $ifNull: ['$unit_price', 0] }
-            ]
-          },
-          cost_price: {
-            $cond: [
-              { $eq: [{ $type: '$product.cost_price' }, 'decimal'] },
-              { $toDouble: '$product.cost_price' },
-              { $ifNull: ['$product.cost_price', 0] }
-            ]
-          }
-        }
-      },
+    if (period !== 'all') {
+      matchStage.order_date = { $gte: startDate };
+    }
+
+    // Aggregate sales data from sales_orders.items array
+    const salesData = await salesOrdersCollection.aggregate([
+      { $match: matchStage },
+      { $unwind: '$items' },
       {
         $group: {
-          _id: '$product_id',
-          product_name: { $first: '$product.name' },
-          total_quantity: { $sum: '$quantity' },
-          total_revenue: { $sum: { $multiply: ['$unit_price', '$quantity'] } },
-          total_cost: { $sum: { $multiply: ['$cost_price', '$quantity'] } },
-          unit_price: { $first: '$unit_price' },
-          cost_price: { $first: '$cost_price' }
+          _id: '$items.product_id',
+          product_name: { $first: '$items.product_name' },
+          total_quantity: { $sum: '$items.quantity' },
+          total_revenue: { $sum: '$items.item_total' },
+          total_profit: { $sum: '$items.item_profit' },
+          total_cost: {
+            $sum: {
+              $multiply: [
+                { $ifNull: ['$items.cost_price', 0] },
+                '$items.quantity'
+              ]
+            }
+          },
+          avg_unit_price: { $avg: '$items.unit_price' },
+          avg_cost_price: { $avg: { $ifNull: ['$items.cost_price', 0] } }
         }
       },
       {
         $addFields: {
-          total_profit: { $subtract: ['$total_revenue', '$total_cost'] },
           profit_margin: {
             $cond: [
               { $gt: ['$total_revenue', 0] },
-              { $multiply: [{ $divide: [{ $subtract: ['$total_revenue', '$total_cost'] }, '$total_revenue'] }, 100] },
+              { 
+                $multiply: [
+                  { $divide: ['$total_profit', '$total_revenue'] }, 
+                  100
+                ] 
+              },
               0
             ]
           },
-          profit_per_unit: { $subtract: ['$unit_price', '$cost_price'] }
+          profit_per_unit: { $subtract: ['$avg_unit_price', '$avg_cost_price'] }
         }
-      }
+      },
+      { $sort: { profit_margin: -1 } }
     ]).toArray();
 
     // Calculate overall totals
@@ -486,16 +463,13 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
 
     const overallMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100) : 0;
 
-    // Sort by profit margin for top products
-    const sortedProducts = salesData.sort((a, b) => b.profit_margin - a.profit_margin);
-
     // Get profit margin distribution
     const highMargin = salesData.filter(p => p.profit_margin > 30).length;
     const mediumMargin = salesData.filter(p => p.profit_margin > 15 && p.profit_margin <= 30).length;
     const lowMargin = salesData.filter(p => p.profit_margin <= 15).length;
 
     // Format top profitable products
-    const topProfitableProducts = sortedProducts.slice(0, 10).map(p => ({
+    const topProfitableProducts = salesData.slice(0, 10).map(p => ({
       _id: p._id,
       name: p.product_name,
       profit_margin: parseFloat(p.profit_margin.toFixed(2)),
@@ -518,6 +492,20 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
       period: period,
       period_label: periodLabels[period] || "All Time",
       total_revenue: Math.round(totalRevenue),
+      total_cost: Math.round(totalCost),
+      total_profit: Math.round(totalProfit),
+      overall_margin: parseFloat(overallMargin.toFixed(2)),
+      top_profitable_products: topProfitableProducts,
+      margin_distribution: {
+        high_margin: highMargin,
+        medium_margin: mediumMargin,
+        low_margin: lowMargin
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
       total_cost: Math.round(totalCost),
       total_profit: Math.round(totalProfit),
       overall_margin: parseFloat(overallMargin.toFixed(2)),
