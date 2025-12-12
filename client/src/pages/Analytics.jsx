@@ -3,6 +3,7 @@ import { Card, Row, Col, Statistic, Select, Spin, Typography, Table, Tag, Space,
 import { DollarOutlined, ShoppingCartOutlined, RiseOutlined, CalendarOutlined, TrophyOutlined, LineChartOutlined, FundOutlined } from '@ant-design/icons'
 import { reportsAPI } from '../services/api'
 import PageHeader from '../components/PageHeader'
+import BackToTop from '../components/BackToTop'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -494,14 +495,15 @@ function Analytics() {
                     ]}
                     rowKey="_id"
                   />
-                </Card>
-              </Col>
-            </Row>
-          </div>
-        )}
+            </Card>
+          </Col>
+        </Row>
       </div>
-    </Spin>
-  )
+    )}
+    <BackToTop />
+  </div>
+</Spin>
+)
 }
 
 export default Analytics

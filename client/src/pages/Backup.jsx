@@ -4,6 +4,7 @@ import { CloudUploadOutlined, CloudDownloadOutlined, DeleteOutlined, Exclamation
 import { backupAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import PageHeader from '../components/PageHeader'
+import BackToTop from '../components/BackToTop'
 
 function Backup() {
   const { user } = useAuthStore()
@@ -262,15 +263,16 @@ function Backup() {
               <li>Test restore procedures periodically to ensure backups are valid</li>
               <li>Keep multiple backup versions for different recovery points</li>
               <li>Monitor backup size and storage space</li>
-            </ul>
-          }
-          type="warning"
-          showIcon
-          style={{ marginTop: 20 }}
-        />
-      </div>
-    </Spin>
-  )
+        </ul>
+      }
+      type="warning"
+      showIcon
+      style={{ marginTop: 20 }}
+    />
+    <BackToTop />
+  </div>
+</Spin>
+)
 }
 
 export default Backup

@@ -4,6 +4,7 @@ import { BugOutlined, CheckCircleOutlined, CloseCircleOutlined, SyncOutlined, Ap
 import { productsAPI, customersAPI, salesAPI, invoicesAPI, reportsAPI, authAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import PageHeader from '../components/PageHeader'
+import BackToTop from '../components/BackToTop'
 
 const { Panel } = Collapse
 const { Title, Text, Paragraph } = Typography
@@ -534,14 +535,15 @@ function Debug() {
               <Tag color="orange">{localStorage.getItem('token') ? 'Present' : 'Missing'}</Tag>
             </Col>
             <Col xs={24} md={12}>
-              <Text strong>Environment:</Text><br />
-              <Tag color="red">{import.meta.env.MODE}</Tag>
-            </Col>
-          </Row>
-        </Card>
-      </div>
-    </Spin>
-  )
+          <Text strong>Environment:</Text><br />
+          <Tag color="red">{import.meta.env.MODE}</Tag>
+        </Col>
+      </Row>
+    </Card>
+    <BackToTop />
+  </div>
+</Spin>
+)
 }
 
 export default Debug

@@ -6,6 +6,7 @@ import { printTable, printSalesOrder, exportDataToPDFTable } from '../utils/prin
 import { useAuthStore } from '../store/authStore'
 import PageHeader from '../components/PageHeader'
 import AdvancedSearchDrawer from '../components/AdvancedSearchDrawer'
+import BackToTop from '../components/BackToTop'
 
 function Sales() {
   const { user } = useAuthStore()

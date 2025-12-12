@@ -432,6 +432,21 @@
   .profile-info-text p {
     margin: 4px 0 !important;
   }
+
+  /* Back to Top Button Mobile Responsive */
+  .ant-float-btn-group {
+    right: 12px !important;
+    bottom: 12px !important;
+  }
+
+  .ant-float-btn {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .ant-float-btn-icon {
+    font-size: 18px !important;
+  }
 }
 
 /* Touch-friendly adjustments */

@@ -4,6 +4,7 @@ import { UserOutlined, CrownOutlined, TeamOutlined, EyeOutlined, DeleteOutlined,
 import { usersAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import PageHeader from '../components/PageHeader'
+import BackToTop from '../components/BackToTop'
 
 const { Option } = Select
 const { Text } = Typography
@@ -311,14 +312,15 @@ function Users() {
             >
               <Input.Password 
                 placeholder="Confirm new password"
-                autoComplete="new-password"
-              />
-            </Form.Item>
-          </Form>
-        </Modal>
-      </div>
-    </div>
-  )
+            autoComplete="new-password"
+          />
+        </Form.Item>
+      </Form>
+    </Modal>
+    <BackToTop />
+  </div>
+</div>
+)
 }
 
 export default Users

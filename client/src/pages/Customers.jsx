@@ -6,6 +6,7 @@ import { printTable, exportDataToPDFTable } from '../utils/printUtils'
 import { useAuthStore } from '../store/authStore'
 import PageHeader from '../components/PageHeader'
 import AdvancedSearchDrawer from '../components/AdvancedSearchDrawer'
+import BackToTop from '../components/BackToTop'
 
 function Customers() {
   const { user } = useAuthStore()
@@ -619,14 +620,15 @@ function Customers() {
           onClose={() => setSearchDrawerVisible(false)}
           onApply={applyFilters}
           fields={[
-            { name: 'name', label: 'Customer Name', type: 'input' },
-            { name: 'phone', label: 'Phone Number', type: 'input' },
-            { name: 'email', label: 'Email', type: 'input' }
-          ]}
-        />
-      </div>
-    </Spin>
-  )
+        { name: 'name', label: 'Customer Name', type: 'input' },
+        { name: 'phone', label: 'Phone Number', type: 'input' },
+        { name: 'email', label: 'Email', type: 'input' }
+      ]}
+    />
+    <BackToTop />
+  </div>
+</Spin>
+)
 }
 
 export default Customers

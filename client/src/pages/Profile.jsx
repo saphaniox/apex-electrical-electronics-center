@@ -4,6 +4,7 @@ import { UserOutlined, UploadOutlined, DeleteOutlined, CameraOutlined, LockOutli
 import { usersAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import PageHeader from '../components/PageHeader'
+import BackToTop from '../components/BackToTop'
 
 const { Title, Text } = Typography
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
@@ -297,15 +298,16 @@ function Profile() {
           width="auto"
           style={{ maxWidth: '90vw' }}
         >
-          <img 
-            src={getProfilePictureUrl()} 
-            alt="Profile" 
-            style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
-          />
-        </Modal>
-      </div>
+        <img 
+          src={getProfilePictureUrl()} 
+          alt="Profile" 
+          style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+        />
+      </Modal>
+      <BackToTop />
     </div>
-  )
+  </div>
+)
 }
 
 export default Profile

@@ -6,6 +6,7 @@ import { printInvoice, exportDataToPDFTable } from '../utils/printUtils'
 import { useAuthStore } from '../store/authStore'
 import PageHeader from '../components/PageHeader'
 import AdvancedSearchDrawer from '../components/AdvancedSearchDrawer'
+import BackToTop from '../components/BackToTop'
 
 function Invoices() {
   const { user } = useAuthStore()

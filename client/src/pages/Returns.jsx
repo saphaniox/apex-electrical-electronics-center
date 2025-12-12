@@ -4,6 +4,7 @@ import { PlusOutlined, CheckOutlined, CloseOutlined, DeleteOutlined, ShoppingCar
 import { returnsAPI, salesAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import PageHeader from '../components/PageHeader'
+import BackToTop from '../components/BackToTop'
 
 const { TextArea } = Input
 const { Option } = Select
@@ -451,14 +452,15 @@ function Returns() {
                 <Option value="cash">Cash</Option>
                 <Option value="mobile_money">Mobile Money</Option>
                 <Option value="bank_transfer">Bank Transfer</Option>
-                <Option value="store_credit">Store Credit</Option>
-              </Select>
-            </Form.Item>
-          </Form>
-        </Modal>
-      </div>
-    </Spin>
-  )
+            <Option value="store_credit">Store Credit</Option>
+          </Select>
+        </Form.Item>
+      </Form>
+    </Modal>
+    <BackToTop />
+  </div>
+</Spin>
+)
 }
 
 export default Returns
