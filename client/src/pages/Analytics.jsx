@@ -185,7 +185,7 @@ function Analytics() {
             <AntTitle level={4} style={{ marginBottom: '16px', fontSize: window.innerWidth <= 768 ? '16px' : '20px' }}>
               <TrophyOutlined /> Today's Performance
             </AntTitle>
-            <Row gutter={{ xs: 8, sm: 12, md: 16 }}>m: 12, md: 16 }}>
+            <Row gutter={{ xs: 8, sm: 12, md: 16 }}>
               <Col xs={12} sm={12} md={6}>
                 <Card>
                   <Statistic
@@ -361,8 +361,6 @@ function Analytics() {
                     sorter: (a, b) => b.orders - a.orders
                   }
                 ]}
-                pagination={{ simple: window.innerWidth <= 768, pageSize: 10 }}
-                size={window.innerWidth <= 768 ? 'small' : 'middle'}
               />
             </Card>
           </>

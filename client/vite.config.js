@@ -9,13 +9,6 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0', // Listen on all network interfaces
       port: 5173,
-      proxy: {
-        '/api': {
-          target: env.VITE_API_URL || 'http://localhost:5000',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, '/api')
-        }
-      }
     },
     build: {
       outDir: 'dist',

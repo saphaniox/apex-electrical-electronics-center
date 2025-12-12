@@ -30,9 +30,10 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' } // Allow images from different origins
 }));
 
-// CORS Configuration - Only allow specific origins
+// CORS Configuration - Allow all origins in development, specific in production
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
   'http://10.177.144.92:5173'
 ];
 
@@ -41,19 +42,22 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, Postman, curl, etc.)
     if (!origin) return callback(null, true);
     
-    // In development, allow localhost on any port
-    if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
+    // In development, allow all origins for easier testing
+    if (process.env.NODE_ENV === 'development') {
       return callback(null, true);
     }
     
-    if (allowedOrigins.includes(origin)) {
+    // In production, check against allowed origins
+    if (allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin))) {
       callback(null, true);
     } else {
       console.log(`⚠️ CORS blocked origin: ${origin}`);
       callback(null, false); // Block but don't throw error
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parser with size limits
