@@ -47,6 +47,14 @@ export async function updateUserRole(req, res) {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Protect main admin accounts from role changes
+    const protectedEmails = ['nbulasio38@gmail.com', 'admin@apexelectricals.com'];
+    if (protectedEmails.includes(user.email)) {
+      return res.status(403).json({ 
+        error: 'This is a protected system administrator account and cannot be modified' 
+      });
+    }
+
     // Prevent demoting the last admin
     if (user.role === 'admin' && role !== 'admin') {
       const adminCount = await usersCollection.countDocuments({ role: 'admin' });
@@ -92,6 +100,14 @@ export async function deleteUser(req, res) {
     const user = await usersCollection.findOne({ _id: new ObjectId(id) });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Protect main admin accounts from deletion
+    const protectedEmails = ['nbulasio38@gmail.com', 'admin@apexelectricals.com'];
+    if (protectedEmails.includes(user.email)) {
+      return res.status(403).json({ 
+        error: 'This is a protected system administrator account and cannot be deleted' 
+      });
     }
 
     // Prevent deleting yourself
