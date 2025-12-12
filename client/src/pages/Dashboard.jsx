@@ -270,17 +270,18 @@ function Dashboard() {
               />
             </Tooltip>
           )}
-          <div className="user-section" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-            <Dropdown menu={userMenu}>
+          <div className="user-section" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginLeft: 'auto' }}>
+            <Dropdown menu={userMenu} trigger={['click']}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Avatar 
-                  size={40} 
+                  size={isMobile ? 40 : 40}
                   icon={<UserOutlined />}
                   src={user?.profile_picture ? `${API_BASE_URL}/uploads/profiles/${user.profile_picture}` : null}
+                  style={{ border: isMobile ? '2px solid #1890ff' : 'none', cursor: 'pointer' }}
                 >
                   {!user?.profile_picture && user?.username?.charAt(0).toUpperCase()}
                 </Avatar>
-                <span style={{ display: window.innerWidth > 480 ? 'block' : 'none' }}>{user?.username}</span>
+                {!isMobile && <span>{user?.username}</span>}
               </div>
             </Dropdown>
           </div>

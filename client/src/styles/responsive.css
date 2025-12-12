@@ -173,14 +173,23 @@
   /* Header user section */
   .user-section {
     font-size: 12px !important;
+    display: flex !important;
   }
 
   .user-section span {
-    display: none;
+    display: none !important;
   }
 
-  .ant-avatar {
-    margin-right: 4px !important;
+  .user-section .ant-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    margin-right: 0 !important;
+    border: 2px solid #1890ff !important;
+  }
+
+  .user-section .ant-dropdown-trigger {
+    display: flex !important;
+    align-items: center !important;
   }
 }
 
@@ -188,8 +197,24 @@
   /* Extra small screens */
 
   .ant-layout-header {
-    padding: 0 8px !important;
-    height: 48px !important;
+    padding: 0 12px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+  }
+
+  /* Make header items more visible on very small screens */
+  .user-section .ant-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    border: 2px solid #1890ff !important;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3) !important;
+  }
+
+  /* Ensure header has proper spacing */
+  .ant-layout-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
   }
 
   .ant-layout-content {
