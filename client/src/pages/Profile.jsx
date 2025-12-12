@@ -133,14 +133,15 @@ function Profile() {
                   cursor: profilePicture ? 'pointer' : 'default',
                   border: '4px solid #f0f0f0'
                 }}
+                className="profile-avatar"
                 onClick={() => profilePicture && setPreviewVisible(true)}
               />
 
-              <Title level={3}>{user?.username}</Title>
-              <Text type="secondary" style={{ fontSize: '16px', display: 'block', marginBottom: '8px' }}>
+              <Title level={3} className="profile-username">{user?.username}</Title>
+              <Text type="secondary" className="profile-email" style={{ fontSize: '16px', display: 'block', marginBottom: '8px' }}>
                 {user?.email}
               </Text>
-              <Text style={{ 
+              <Text className="profile-role-badge" style={{ 
                 display: 'inline-block',
                 padding: '4px 12px',
                 background: user?.role === 'admin' ? '#ff4d4f' : user?.role === 'manager' ? '#1890ff' : user?.role === 'sales' ? '#52c41a' : '#fa8c16',
@@ -154,8 +155,8 @@ function Profile() {
                 {user?.role}
               </Text>
 
-              <div style={{ marginTop: '32px' }}>
-                <Space size="large" wrap>
+              <div className="profile-actions-container" style={{ marginTop: '32px' }}>
+                <Space size="large" wrap className="profile-actions-space">
                   <Upload
                     accept="image/*"
                     showUploadList={false}
@@ -166,6 +167,7 @@ function Profile() {
                       type="primary" 
                       icon={profilePicture ? <CameraOutlined /> : <UploadOutlined />}
                       size="large"
+                      className="profile-action-btn"
                     >
                       {profilePicture ? 'Change Picture' : 'Upload Picture'}
                     </Button>
@@ -177,6 +179,7 @@ function Profile() {
                       icon={<DeleteOutlined />}
                       size="large"
                       onClick={handleDelete}
+                      className="profile-action-btn"
                     >
                       Delete Picture
                     </Button>
@@ -186,12 +189,13 @@ function Profile() {
                     icon={<LockOutlined />}
                     size="large"
                     onClick={() => setPasswordModalVisible(true)}
+                    className="profile-action-btn"
                   >
                     Change Password
                   </Button>
                 </Space>
 
-                <div style={{ marginTop: '24px', color: '#8c8c8c', fontSize: '14px' }}>
+                <div className="profile-info-text" style={{ marginTop: '24px', color: '#8c8c8c', fontSize: '14px' }}>
                   <p>• Accepted formats: JPG, PNG, GIF, WEBP</p>
                   <p>• Maximum file size: 5MB</p>
                 </div>

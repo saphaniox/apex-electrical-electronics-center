@@ -384,6 +384,54 @@
   .subtitle-responsive {
     font-size: clamp(14px, 3vw, 16px);
   }
+
+  /* Profile Page Mobile Responsive */
+  .profile-avatar {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .profile-username {
+    font-size: 18px !important;
+  }
+
+  .profile-email {
+    font-size: 13px !important;
+  }
+
+  .profile-role-badge {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+
+  .profile-actions-container {
+    margin-top: 20px !important;
+  }
+
+  .profile-actions-space {
+    width: 100%;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .profile-actions-space .ant-space-item {
+    width: 100%;
+  }
+
+  .profile-action-btn {
+    width: 100% !important;
+    height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  .profile-info-text {
+    font-size: 12px !important;
+    margin-top: 16px !important;
+  }
+
+  .profile-info-text p {
+    margin: 4px 0 !important;
+  }
 }
 
 /* Touch-friendly adjustments */
