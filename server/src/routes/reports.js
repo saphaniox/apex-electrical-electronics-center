@@ -506,19 +506,5 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-      total_cost: Math.round(totalCost),
-      total_profit: Math.round(totalProfit),
-      overall_margin: parseFloat(overallMargin.toFixed(2)),
-      top_profitable_products: topProfitableProducts,
-      margin_distribution: {
-        high_margin: highMargin,
-        medium_margin: mediumMargin,
-        low_margin: lowMargin
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
 export default router;
