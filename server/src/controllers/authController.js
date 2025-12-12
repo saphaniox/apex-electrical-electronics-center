@@ -26,7 +26,7 @@ export async function register(req, res) {
       username,
       email,
       password_hash: hashedPassword,
-      role: 'admin',
+      role: 'viewer',
       created_at: new Date()
     });
 
@@ -34,11 +34,11 @@ export async function register(req, res) {
       id: result.insertedId,
       username,
       email,
-      role: 'admin'
+      role: 'viewer'
     };
 
     const token = jwt.sign(
-      { id: result.insertedId, username, role: 'admin' },
+      { id: result.insertedId, username, role: 'viewer' },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
