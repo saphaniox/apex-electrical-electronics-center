@@ -41,15 +41,20 @@ function Analytics() {
   const [periodData, setPeriodData] = useState(null)
   const [profitData, setProfitData] = useState(null)
   const [selectedPeriod, setSelectedPeriod] = useState('week')
+  const [selectedProfitPeriod, setSelectedProfitPeriod] = useState('all')
 
   useEffect(() => {
     fetchDailyAnalytics()
-    fetchProfitAnalytics()
+    fetchProfitAnalytics('all')
   }, [])
 
   useEffect(() => {
     fetchPeriodAnalytics(selectedPeriod)
   }, [selectedPeriod])
+
+  useEffect(() => {
+    fetchProfitAnalytics(selectedProfitPeriod)
+  }, [selectedProfitPeriod])
 
   const fetchDailyAnalytics = async () => {
     try {
@@ -63,13 +68,20 @@ function Analytics() {
     }
   }
 
-  const fetchProfitAnalytics = async () => {
+  const fetchProfitAnalytics = async (period) => {
     try {
-      const response = await reportsAPI.profitAnalytics()
+      setIsLoading(true)
+      const response = await reportsAPI.profitAnalytics(period)
       setProfitData(response.data)
     } catch (error) {
       console.error('Failed to fetch profit analytics:', error)
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  const handleProfitPeriodChange = (value) => {
+    setSelectedProfitPeriod(value)
   }
 
   const fetchPeriodAnalytics = async (period) => {
@@ -370,9 +382,29 @@ function Analytics() {
         {/* Profit Analytics Section */}
         {profitData && (
           <div style={{ marginTop: window.innerWidth <= 768 ? 16 : 24 }}>
-            <AntTitle level={3} style={{ marginBottom: 16, fontSize: window.innerWidth <= 768 ? '18px' : '24px' }}>
-              <FundOutlined /> Profit Analytics
-            </AntTitle>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: '12px' }}>
+              <AntTitle level={3} style={{ margin: 0, fontSize: window.innerWidth <= 768 ? '18px' : '24px' }}>
+                <FundOutlined /> Profit Analytics
+              </AntTitle>
+              <Space>
+                <CalendarOutlined style={{ fontSize: '16px', color: '#1890ff' }} />
+                <Select
+                  value={selectedProfitPeriod}
+                  onChange={handleProfitPeriodChange}
+                  style={{ width: isMobile ? 120 : 150 }}
+                >
+                  <Option value="today">Today</Option>
+                  <Option value="week">Last 7 Days</Option>
+                  <Option value="month">This Month</Option>
+                  <Option value="quarter">This Quarter</Option>
+                  <Option value="year">This Year</Option>
+                  <Option value="all">All Time</Option>
+                </Select>
+              </Space>
+            </div>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 16, fontSize: isMobile ? '12px' : '14px' }}>
+              {profitData.period_label} - Based on actual sales transactions
+            </Text>
             
             <Row gutter={{ xs: 8, sm: 12, md: 16 }}>
               <Col xs={12} sm={12} md={6}>
@@ -473,7 +505,16 @@ function Analytics() {
                         title: 'Product',
                         dataIndex: 'name',
                         key: 'name',
-                        ellipsis: true
+                        ellipsis: true,
+                        width: 150
+                      },
+                      {
+                        title: 'Sold',
+                        dataIndex: 'total_sold',
+                        key: 'total_sold',
+                        render: (qty) => <Text strong style={{ color: '#1890ff' }}>{qty}</Text>,
+                        sorter: (a, b) => b.total_sold - a.total_sold,
+                        width: 70
                       },
                       {
                         title: 'Margin',
@@ -484,13 +525,15 @@ function Analytics() {
                           return <Tag color={color}>{margin.toFixed(1)}%</Tag>
                         },
                         sorter: (a, b) => b.profit_margin - a.profit_margin,
-                        responsive: ['sm']
+                        width: 80
                       },
                       {
-                        title: 'Profit/Unit',
-                        dataIndex: 'profit',
-                        key: 'profit',
-                        render: (profit) => `UGX ${profit.toLocaleString()}`
+                        title: 'Total Profit',
+                        dataIndex: 'total_profit',
+                        key: 'total_profit',
+                        render: (profit) => <Text strong style={{ color: '#52c41a' }}>UGX {profit.toLocaleString()}</Text>,
+                        sorter: (a, b) => b.total_profit - a.total_profit,
+                        width: 120
                       }
                     ]}
                     rowKey="_id"

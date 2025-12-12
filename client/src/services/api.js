@@ -87,7 +87,7 @@ export const reportsAPI = {
   salesTrend: () => api.get('/reports/sales-trend'),
   dailyAnalytics: () => api.get('/reports/analytics/daily'),
   periodAnalytics: (period) => api.get('/reports/analytics/period', { params: { period } }),
-  profitAnalytics: () => api.get('/reports/profit-analytics'),
+  profitAnalytics: (period) => api.get('/reports/profit-analytics', { params: { period } }),
 }
 
 export const usersAPI = {

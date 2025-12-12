@@ -368,62 +368,160 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
     const db = getDatabase();
     const productsCollection = db.collection('products');
     const salesOrdersCollection = db.collection('sales_orders');
+    const orderItemsCollection = db.collection('order_items');
 
-    // Get products with profit data
-    const products = await productsCollection
-      .find({})
-      .project({
-        name: 1,
-        sku: 1,
-        unit_price: 1,
-        cost_price: 1,
-        profit: 1,
-        profit_margin: 1,
-        quantity_in_stock: 1
-      })
-      .toArray();
+    // Get period from query params (default to 'all')
+    const period = req.query.period || 'all';
+    
+    // Calculate date range based on period
+    const now = new Date();
+    let startDate;
+    
+    switch(period) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'quarter':
+        const currentQuarter = Math.floor(now.getMonth() / 3);
+        startDate = new Date(now.getFullYear(), currentQuarter * 3, 1);
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        startDate = new Date(0); // All time
+    }
 
-    // Calculate total profit metrics
+    // Build date filter for sales orders
+    const dateFilter = period === 'all' ? {} : {
+      order_date: { $gte: startDate.toISOString().split('T')[0] }
+    };
+
+    // Get sales data with product details from order_items
+    const salesData = await orderItemsCollection.aggregate([
+      {
+        $lookup: {
+          from: 'sales_orders',
+          localField: 'order_id',
+          foreignField: '_id',
+          as: 'order'
+        }
+      },
+      { $unwind: '$order' },
+      {
+        $match: {
+          'order.status': { $in: ['pending', 'completed'] },
+          ...Object.keys(dateFilter).length > 0 && { 'order.order_date': dateFilter.order_date }
+        }
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product_id',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      { $unwind: '$product' },
+      {
+        $addFields: {
+          unit_price: {
+            $cond: [
+              { $eq: [{ $type: '$unit_price' }, 'decimal'] },
+              { $toDouble: '$unit_price' },
+              { $ifNull: ['$unit_price', 0] }
+            ]
+          },
+          cost_price: {
+            $cond: [
+              { $eq: [{ $type: '$product.cost_price' }, 'decimal'] },
+              { $toDouble: '$product.cost_price' },
+              { $ifNull: ['$product.cost_price', 0] }
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$product_id',
+          product_name: { $first: '$product.name' },
+          total_quantity: { $sum: '$quantity' },
+          total_revenue: { $sum: { $multiply: ['$unit_price', '$quantity'] } },
+          total_cost: { $sum: { $multiply: ['$cost_price', '$quantity'] } },
+          unit_price: { $first: '$unit_price' },
+          cost_price: { $first: '$cost_price' }
+        }
+      },
+      {
+        $addFields: {
+          total_profit: { $subtract: ['$total_revenue', '$total_cost'] },
+          profit_margin: {
+            $cond: [
+              { $gt: ['$total_revenue', 0] },
+              { $multiply: [{ $divide: [{ $subtract: ['$total_revenue', '$total_cost'] }, '$total_revenue'] }, 100] },
+              0
+            ]
+          },
+          profit_per_unit: { $subtract: ['$unit_price', '$cost_price'] }
+        }
+      }
+    ]).toArray();
+
+    // Calculate overall totals
     let totalRevenue = 0;
     let totalCost = 0;
     let totalProfit = 0;
 
-    const profitableProducts = products
-      .map(p => ({
-        ...p,
-        price: p.unit_price ? parseFloat(p.unit_price.toString()) : 0,
-        cost: p.cost_price ? parseFloat(p.cost_price.toString()) : 0,
-        profit: p.profit ? parseFloat(p.profit.toString()) : 0,
-        profit_margin: p.profit_margin || 0,
-        quantity: p.quantity_in_stock || 0
-      }))
-      .filter(p => p.profit > 0)
-      .sort((a, b) => b.profit_margin - a.profit_margin);
-
-    // Calculate totals
-    products.forEach(p => {
-      const price = p.unit_price ? parseFloat(p.unit_price.toString()) : 0;
-      const cost = p.cost_price ? parseFloat(p.cost_price.toString()) : 0;
-      const qty = p.quantity_in_stock || 0;
-      
-      totalRevenue += price * qty;
-      totalCost += cost * qty;
+    salesData.forEach(item => {
+      totalRevenue += item.total_revenue || 0;
+      totalCost += item.total_cost || 0;
+      totalProfit += item.total_profit || 0;
     });
 
-    totalProfit = totalRevenue - totalCost;
     const overallMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100) : 0;
 
-    // Get profit by category (high, medium, low margin)
-    const highMargin = profitableProducts.filter(p => p.profit_margin > 30).length;
-    const mediumMargin = profitableProducts.filter(p => p.profit_margin > 15 && p.profit_margin <= 30).length;
-    const lowMargin = profitableProducts.filter(p => p.profit_margin <= 15).length;
+    // Sort by profit margin for top products
+    const sortedProducts = salesData.sort((a, b) => b.profit_margin - a.profit_margin);
+
+    // Get profit margin distribution
+    const highMargin = salesData.filter(p => p.profit_margin > 30).length;
+    const mediumMargin = salesData.filter(p => p.profit_margin > 15 && p.profit_margin <= 30).length;
+    const lowMargin = salesData.filter(p => p.profit_margin <= 15).length;
+
+    // Format top profitable products
+    const topProfitableProducts = sortedProducts.slice(0, 10).map(p => ({
+      _id: p._id,
+      name: p.product_name,
+      profit_margin: parseFloat(p.profit_margin.toFixed(2)),
+      profit: Math.round(p.profit_per_unit),
+      total_sold: p.total_quantity,
+      total_profit: Math.round(p.total_profit)
+    }));
+
+    // Get period label
+    const periodLabels = {
+      today: "Today",
+      week: "Last 7 Days",
+      month: "This Month",
+      quarter: "This Quarter",
+      year: "This Year",
+      all: "All Time"
+    };
 
     res.json({
+      period: period,
+      period_label: periodLabels[period] || "All Time",
       total_revenue: Math.round(totalRevenue),
       total_cost: Math.round(totalCost),
       total_profit: Math.round(totalProfit),
       overall_margin: parseFloat(overallMargin.toFixed(2)),
-      top_profitable_products: profitableProducts.slice(0, 10),
+      top_profitable_products: topProfitableProducts,
       margin_distribution: {
         high_margin: highMargin,
         medium_margin: mediumMargin,
