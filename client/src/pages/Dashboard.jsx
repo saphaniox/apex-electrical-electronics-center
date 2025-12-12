@@ -244,10 +244,10 @@ function Dashboard() {
           alignItems: 'center', 
           borderBottom: '1px solid #f0f0f0', 
           height: 'auto', 
-          minHeight: '64px',
+          minHeight: isMobile ? '56px' : '64px',
           position: 'sticky',
           top: 0,
-          zIndex: 999
+          zIndex: 1000
         }}>
           {isMobile ? (
             <Tooltip title="Open menu">
@@ -270,14 +270,30 @@ function Dashboard() {
               />
             </Tooltip>
           )}
-          <div className="user-section" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginLeft: 'auto' }}>
-            <Dropdown menu={userMenu} trigger={['click']}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="user-section" style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px', 
+            cursor: 'pointer', 
+            marginLeft: 'auto',
+            zIndex: 1001
+          }}>
+            <Dropdown 
+              menu={userMenu} 
+              trigger={['click']} 
+              placement="bottomRight"
+              getPopupContainer={trigger => trigger.parentElement}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: isMobile ? '4px' : '0' }}>
                 <Avatar 
-                  size={isMobile ? 40 : 40}
+                  size={isMobile ? 44 : 40}
                   icon={<UserOutlined />}
                   src={user?.profile_picture ? `${API_BASE_URL}/uploads/profiles/${user.profile_picture}` : null}
-                  style={{ border: isMobile ? '2px solid #1890ff' : 'none', cursor: 'pointer' }}
+                  style={{ 
+                    border: isMobile ? '3px solid #1890ff' : '1px solid #d9d9d9', 
+                    cursor: 'pointer',
+                    boxShadow: isMobile ? '0 2px 12px rgba(24, 144, 255, 0.4)' : 'none'
+                  }}
                 >
                   {!user?.profile_picture && user?.username?.charAt(0).toUpperCase()}
                 </Avatar>
