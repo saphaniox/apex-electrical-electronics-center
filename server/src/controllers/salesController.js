@@ -278,16 +278,30 @@ export async function updateSalesOrder(req, res) {
           return res.status(404).json({ error: `Product not found: ${item.product_id}` });
         }
 
-        const productPrice = product.unit_price ? parseFloat(product.unit_price.toString()) : product.price;
+        // Use custom_price if provided, otherwise use product's default price
+        let productPrice;
+        if (item.custom_price !== undefined && item.custom_price !== null && item.custom_price > 0) {
+          productPrice = parseFloat(item.custom_price);
+        } else {
+          productPrice = product.unit_price ? parseFloat(product.unit_price.toString()) : product.price;
+        }
+
         const itemTotal = productPrice * item.quantity;
         totalAmount += itemTotal;
+
+        // Get cost price for profit calculation
+        const costPrice = product.cost_price ? parseFloat(product.cost_price.toString()) : 0;
+        const itemProfit = (productPrice - costPrice) * item.quantity;
 
         orderItems.push({
           product_id: new ObjectId(item.product_id),
           product_name: product.name,
           quantity: item.quantity,
           unit_price: productPrice,
-          item_total: itemTotal
+          cost_price: costPrice,
+          item_total: itemTotal,
+          item_profit: itemProfit,
+          custom_price_used: item.custom_price !== undefined && item.custom_price !== null && item.custom_price > 0
         });
       }
 
