@@ -15,7 +15,7 @@ function Customers() {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [selectedCustomerId, setSelectedCustomerId] = useState(null)
   const [customerForm] = Form.useForm()
-  const [tablePageInfo, setTablePageInfo] = useState({ page: 1, limit: 10, total: 0 })
+  const [tablePageInfo, setTablePageInfo] = useState({ page: 1, limit: 50, total: 0 })
   const [historyDrawerVisible, setHistoryDrawerVisible] = useState(false)
   const [purchaseHistory, setPurchaseHistory] = useState(null)
   const [historyLoading, setHistoryLoading] = useState(false)
@@ -145,12 +145,15 @@ function Customers() {
   const handleExportCustomersCSV = async () => {
     try {
       setIsLoading(true)
-      const filteredData = getFilteredCustomers()
-      if (filteredData.length === 0) {
+      // Fetch all customers for export (no pagination limit)
+      const response = await customersAPI.getAll(1, 10000)
+      const allCustomers = response.data.data || []
+      
+      if (allCustomers.length === 0) {
         message.warning('No customers available to export. Try adding customers or adjusting filters.')
         return
       }
-      const exportData = filteredData.map(c => ({
+      const exportData = allCustomers.map(c => ({
         'Name': c.name,
         'Phone': c.phone,
         'Email': c.email,
@@ -159,7 +162,7 @@ function Customers() {
         'Total Spent (UGX)': c.total_spent
       }))
       exportToCSV(exportData, 'customers.csv')
-      message.success('✅ Customer list exported to CSV successfully!')
+      message.success(`✅ ${allCustomers.length} customers exported to CSV successfully!`)
     } catch (error) {
       message.error('Unable to export customers. Please try again.')
     } finally {
@@ -171,12 +174,15 @@ function Customers() {
   const handleExportCustomersPDF = async () => {
     try {
       setIsLoading(true)
-      const filteredData = getFilteredCustomers()
-      if (filteredData.length === 0) {
+      // Fetch all customers for export (no pagination limit)
+      const response = await customersAPI.getAll(1, 10000)
+      const allCustomers = response.data.data || []
+      
+      if (allCustomers.length === 0) {
         message.warning('No customers to export')
         return
       }
-      const exportData = filteredData.map(c => ({
+      const exportData = allCustomers.map(c => ({
         'Name': c.name,
         'Phone': c.phone,
         'Email': c.email,
@@ -190,7 +196,7 @@ function Customers() {
         'Customers Report',
         ['Name', 'Phone', 'Email', 'Address', 'Total Purchases', 'Total Spent (UGX)']
       )
-      message.success('Customers exported to PDF successfully')
+      message.success(`✅ ${allCustomers.length} customers exported to PDF successfully`)
     } catch (error) {
       message.error('Failed to export customers to PDF')
     } finally {
@@ -400,12 +406,13 @@ function Customers() {
             size={isMobile ? 'small' : 'middle'}
             pagination={{
               pageSize: tablePageInfo.limit,
-              total: getFilteredCustomers().length,
+              total: tablePageInfo.total,
               current: tablePageInfo.page,
-              onChange: (page) => setTablePageInfo(prev => ({ ...prev, page })),
+              onChange: (page, pageSize) => setTablePageInfo(prev => ({ ...prev, page, limit: pageSize || prev.limit })),
               showTotal: (total) => `Total ${total} customers`,
               simple: isSmallMobile,
-              showSizeChanger: !isMobile
+              showSizeChanger: !isMobile,
+              pageSizeOptions: ['10', '20', '50', '100']
             }}
           />
         )}
