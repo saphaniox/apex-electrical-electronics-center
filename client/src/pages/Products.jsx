@@ -15,7 +15,7 @@ function Products() {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState(null)
   const [productForm] = Form.useForm()
-  const [tablePageInfo, setTablePageInfo] = useState({ page: 1, limit: 10, total: 0 })
+  const [tablePageInfo, setTablePageInfo] = useState({ page: 1, limit: 50, total: 0 })
   const [searchQuery, setSearchQuery] = useState('')
   const [demandData, setDemandData] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
@@ -577,12 +577,13 @@ function Products() {
                   size={isMobile ? 'small' : 'middle'}
                   pagination={{
                     pageSize: tablePageInfo.limit,
-                    total: getFilteredProducts().length,
+                    total: tablePageInfo.total,
                     current: tablePageInfo.page,
-                    onChange: (page) => setTablePageInfo(prev => ({ ...prev, page })),
+                    onChange: (page, pageSize) => setTablePageInfo(prev => ({ ...prev, page, limit: pageSize || prev.limit })),
                     showTotal: (total) => `Total ${total} products`,
                     simple: isSmallMobile,
-                    showSizeChanger: !isMobile
+                    showSizeChanger: !isMobile,
+                    pageSizeOptions: ['10', '20', '50', '100']
                   }}
                 />
               )
