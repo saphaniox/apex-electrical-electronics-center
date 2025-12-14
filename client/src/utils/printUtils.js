@@ -1,5 +1,5 @@
 /**
- * Print Utilities for Stock & Sales Management System
+ * Print Utilities for Apex Electrical & Electronics Center
  * Provides functionality for printing tables, invoices, and exporting to PDF
  */
 
@@ -79,7 +79,7 @@ export function printTable(tableId, title = 'Document') {
       <div class="print-date">Generated: ${new Date().toLocaleString()}</div>
       ${table.outerHTML}
       <div class="footer">
-        <p>© Stock & Sales Management System | ${new Date().getFullYear()}</p>
+        <p>© Apex Electrical & Electronics Center | ${new Date().getFullYear()}</p>
       </div>
     </body>
     </html>
@@ -235,7 +235,7 @@ export function printInvoice(invoice) {
     <body>
       <div class="invoice-container">
         <div class="header">
-          <div class="company-name">STOCK & SALES MANAGEMENT</div>
+          <div class="company-name">APEX ELECTRICAL & ELECTRONICS CENTER</div>
           <div class="company-info">Maya Nanziga</div>
           <div class="company-info">Tel: 0778 247 008 | 0758 705 803</div>
           <div class="invoice-title">INVOICE</div>
@@ -291,7 +291,7 @@ export function printInvoice(invoice) {
 
         <div class="footer">
           <p>Thank you for your business!</p>
-          <p>© Stock & Sales Management System | ${new Date().getFullYear()}</p>
+          <p>© Apex Electrical & Electronics Center | ${new Date().getFullYear()}</p>
         </div>
       </div>
     </body>
@@ -433,7 +433,7 @@ export function printSalesOrder(salesOrder) {
     <body>
       <div class="order-container">
         <div class="header">
-          <div class="company-name">STOCK & SALES MANAGEMENT</div>
+          <div class="company-name">APEX ELECTRICAL & ELECTRONICS CENTER</div>
           <div class="company-info">Maya Nanziga</div>
           <div class="company-info">Tel: 0778 247 008 | 0758 705 803</div>
           <div class="order-title">SALES ORDER</div>
@@ -484,7 +484,7 @@ export function printSalesOrder(salesOrder) {
         </div>
 
         <div class="footer">
-          <p>© Stock & Sales Management System | ${new Date().getFullYear()}</p>
+          <p>© Apex Electrical & Electronics Center | ${new Date().getFullYear()}</p>
           <p>Thank you for your business!</p>
         </div>
       </div>
@@ -575,7 +575,7 @@ export function exportDataToPDFTable(data, filename, title, columns) {
 
     // Footer
     const footerEl = document.createElement('p');
-    footerEl.textContent = '© Stock & Sales Management System';
+    footerEl.textContent = '© Apex Electrical & Electronics Center';
     footerEl.style.textAlign = 'center';
     footerEl.style.marginTop = 'auto';
     footerEl.style.paddingTop = '20px';
