@@ -392,6 +392,15 @@
   .ant-space button {
     display: none !important;
   }
+
+  /* Hide action column in tables when printing */
+  .ant-table-cell:last-child {
+    display: none !important;
+  }
+  
+  th:last-child {
+    display: none !important;
+  }
 }
 
 /* Utility classes */

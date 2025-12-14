@@ -156,10 +156,7 @@ function Customers() {
       const exportData = allCustomers.map(c => ({
         'Name': c.name,
         'Phone': c.phone,
-        'Email': c.email,
-        'Address': c.address,
-        'Total Purchases': c.total_purchases,
-        'Total Spent (UGX)': c.total_spent
+        'Address': c.address || 'N/A'
       }))
       exportToCSV(exportData, 'customers.csv')
       message.success(`✅ ${allCustomers.length} customers exported to CSV successfully!`)
@@ -184,17 +181,14 @@ function Customers() {
       }
       const exportData = allCustomers.map(c => ({
         'Name': c.name,
-        'Phone': c.phone,
-        'Email': c.email,
-        'Address': c.address,
-        'Total Purchases': c.total_purchases,
-        'Total Spent (UGX)': c.total_spent?.toLocaleString() || '0'
+        'Address': c.address || 'N/A',
+        'Phone': c.phone
       }))
       exportDataToPDFTable(
         exportData,
         'customers.pdf',
         'Customers Report',
-        ['Name', 'Phone', 'Email', 'Address', 'Total Purchases', 'Total Spent (UGX)']
+        ['Name', 'Address', 'Phone']
       )
       message.success(`✅ ${allCustomers.length} customers exported to PDF successfully`)
     } catch (error) {
