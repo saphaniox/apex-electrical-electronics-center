@@ -360,6 +360,7 @@ function Sales() {
       title: 'Actions',
       key: 'actions',
       width: isMobile ? '20%' : 'auto',
+      className: 'actions-column no-print',
       render: (_, record) => (
         <Space size="small">
           {record.edit_history?.length > 0 && (

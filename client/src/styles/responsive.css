@@ -394,11 +394,15 @@
   }
 
   /* Hide action column in tables when printing */
-  .ant-table-cell:last-child {
+  .actions-column,
+  .no-print,
+  .ant-table-cell:last-child,
+  th:last-child {
     display: none !important;
   }
   
-  th:last-child {
+  /* Ensure only data columns are visible */
+  [data-column-key="actions"] {
     display: none !important;
   }
 }
