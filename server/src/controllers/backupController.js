@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import archiver from 'archiver';
-import extract from 'extract-zip';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,10 +17,18 @@ if (!fs.existsSync(BACKUP_DIR)) {
 // Create database backup
 export async function createBackup(req, res) {
   try {
+    console.log('Starting backup creation...');
     const db = getDatabase();
+    
+    if (!db) {
+      throw new Error('Database connection not available');
+    }
+    
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupName = `backup_${timestamp}`;
     const backupPath = path.join(BACKUP_DIR, backupName);
+
+    console.log('Backup path:', backupPath);
 
     // Create backup directory
     if (!fs.existsSync(backupPath)) {
@@ -29,14 +36,17 @@ export async function createBackup(req, res) {
     }
 
     // Get all collections
+    console.log('Fetching collections...');
     const collections = await db.listCollections().toArray();
     const collectionNames = collections.map(c => c.name);
+    console.log('Collections found:', collectionNames);
 
     let totalDocuments = 0;
     let totalSize = 0;
 
     // Export each collection
     for (const collectionName of collectionNames) {
+      console.log(`Exporting collection: ${collectionName}...`);
       const collection = db.collection(collectionName);
       const documents = await collection.find({}).toArray();
       
@@ -53,6 +63,7 @@ export async function createBackup(req, res) {
 
       totalDocuments += documents.length;
       totalSize += Buffer.byteLength(jsonData);
+      console.log(`  ✓ Exported ${documents.length} documents`);
     }
 
     // Create metadata file
@@ -73,15 +84,18 @@ export async function createBackup(req, res) {
       JSON.stringify(metadata, null, 2)
     );
 
+    console.log('Backup created successfully:', backupName);
     res.json({
       message: 'Backup created successfully',
       backup: metadata
     });
   } catch (error) {
     console.error('Backup error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ 
       error: 'Failed to create backup', 
-      details: error.message 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
