@@ -25,9 +25,17 @@ function Dashboard() {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
-  const [currentPage, setCurrentPage] = useState('dashboard')
+  const [currentPage, setCurrentPage] = useState(() => {
+    // Restore last page from localStorage on mount
+    return localStorage.getItem('currentPage') || 'dashboard'
+  })
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   const [mobileDrawerVisible, setMobileDrawerVisible] = useState(false)
+
+  // Save current page to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('currentPage', currentPage)
+  }, [currentPage])
 
   useEffect(() => {
     if (!user) {
