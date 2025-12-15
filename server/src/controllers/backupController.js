@@ -266,10 +266,6 @@ export async function downloadBackup(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
-    console.error('Download backup error:', error);
-    res.status(500).json({ error: error.message });
-  }
-}
 
 // Delete backup
 export async function deleteBackup(req, res) {
