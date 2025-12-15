@@ -156,6 +156,7 @@ export async function approveReturn(req, res) {
     const returnsCollection = db.collection('returns');
     const productsCollection = db.collection('products');
     const stockTransactionsCollection = db.collection('stock_transactions');
+    const salesOrdersCollection = db.collection('sales_orders');
 
     // Get return record
     const returnRecord = await returnsCollection.findOne({ _id: new ObjectId(id) });
@@ -165,6 +166,12 @@ export async function approveReturn(req, res) {
 
     if (returnRecord.status !== 'pending') {
       return res.status(400).json({ error: `Cannot approve return with status: ${returnRecord.status}` });
+    }
+
+    // Get the original sales order
+    const salesOrder = await salesOrdersCollection.findOne({ _id: returnRecord.order_id });
+    if (!salesOrder) {
+      return res.status(404).json({ error: 'Original sales order not found' });
     }
 
     // Restore inventory for each item
@@ -195,6 +202,49 @@ export async function approveReturn(req, res) {
       });
     }
 
+    // Update the sales order to reflect the refund
+    // Calculate new totals by removing returned items
+    const updatedItems = salesOrder.items.map(orderItem => {
+      const returnedItem = returnRecord.items.find(
+        ri => ri.product_id.toString() === (orderItem.product_id._id || orderItem.product_id).toString()
+      );
+      
+      if (returnedItem) {
+        const newQuantity = orderItem.quantity - returnedItem.quantity;
+        const newTotal = orderItem.unit_price * newQuantity;
+        const newProfit = orderItem.item_profit ? (orderItem.item_profit / orderItem.quantity) * newQuantity : 0;
+        
+        return {
+          ...orderItem,
+          quantity: newQuantity,
+          total_price: newTotal,
+          item_profit: newProfit,
+          returned_quantity: (orderItem.returned_quantity || 0) + returnedItem.quantity
+        };
+      }
+      return orderItem;
+    }).filter(item => item.quantity > 0); // Remove items with 0 quantity
+
+    // Recalculate order totals
+    const newSubtotal = updatedItems.reduce((sum, item) => sum + item.total_price, 0);
+    const newTotalProfit = updatedItems.reduce((sum, item) => sum + (item.item_profit || 0), 0);
+
+    // Update the sales order with new totals and refund information
+    await salesOrdersCollection.updateOne(
+      { _id: returnRecord.order_id },
+      {
+        $set: {
+          items: updatedItems,
+          subtotal: newSubtotal,
+          total: newSubtotal, // Assuming no additional fees
+          total_profit: newTotalProfit,
+          has_returns: true,
+          total_refunded: (salesOrder.total_refunded || 0) + returnRecord.total_refund_amount,
+          updated_at: new Date()
+        }
+      }
+    );
+
     // Update return status
     const result = await returnsCollection.findOneAndUpdate(
       { _id: new ObjectId(id) },
@@ -211,8 +261,10 @@ export async function approveReturn(req, res) {
     );
 
     res.json({
-      message: 'Return approved and inventory restored',
-      return: result.value || result
+      message: 'Return approved, inventory restored, and financials updated',
+      return: result.value || result,
+      refund_amount: returnRecord.total_refund_amount,
+      updated_order_total: newSubtotal
     });
   } catch (error) {
     console.error('Approve return error:', error);
