@@ -203,6 +203,26 @@
   .ant-dropdown {
     z-index: 1050 !important;
   }
+
+  /* iPhone 13 and similar devices (390px - 428px width) */
+  @media (min-width: 375px) and (max-width: 428px) {
+    .user-section .ant-avatar {
+      width: 50px !important;
+      height: 50px !important;
+      border: 4px solid #1890ff !important;
+      box-shadow: 0 4px 20px rgba(24, 144, 255, 0.7) !important;
+    }
+
+    .user-section .ant-dropdown-trigger {
+      min-width: 62px !important;
+      min-height: 62px !important;
+    }
+
+    .ant-layout-header {
+      min-height: 64px !important;
+      height: 64px !important;
+    }
+  }
 }
 
 @media (max-width: 480px) {

@@ -304,13 +304,13 @@ function Dashboard() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: isMobile ? '6px' : '0' }}>
                 <Avatar 
-                  size={isMobile ? 48 : 40}
+                  size={isMobile ? (window.innerWidth >= 375 && window.innerWidth <= 428 ? 50 : 48) : 40}
                   icon={<UserOutlined />}
                   src={user?.profile_picture && user.profile_picture !== 'profile-picture' ? `${API_BASE_URL}/uploads/profiles/${user.profile_picture}` : undefined}
                   style={{ 
-                    border: isMobile ? '3px solid #1890ff' : '1px solid #d9d9d9', 
+                    border: isMobile ? '4px solid #1890ff' : '1px solid #d9d9d9', 
                     cursor: 'pointer',
-                    boxShadow: isMobile ? '0 3px 15px rgba(24, 144, 255, 0.6)' : 'none',
+                    boxShadow: isMobile ? '0 4px 20px rgba(24, 144, 255, 0.7)' : 'none',
                     flexShrink: 0
                   }}
                 >
