@@ -587,22 +587,24 @@ function Sales() {
                 return (
                   <div key={index} style={{ marginBottom: '16px', padding: '12px', border: '1px solid #f0f0f0', borderRadius: '8px', backgroundColor: '#fafafa' }}>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <select
-                        style={{ flex: '1 1 200px', padding: '8px', border: '1px solid #d9d9d9', borderRadius: '4px' }}
-                        value={item.product_id || ''}
-                        onChange={(e) => {
+                      <Select
+                        showSearch
+                        style={{ flex: '1 1 200px' }}
+                        placeholder="Search and select product"
+                        value={item.product_id || undefined}
+                        onChange={(value) => {
                           const newItems = [...selectedOrderItems]
-                          newItems[index].product_id = e.target.value
+                          newItems[index].product_id = value
                           setSelectedOrderItems(newItems)
                         }}
-                      >
-                        <option value="">Select product</option>
-                        {availableProducts.map(p => (
-                          <option key={p._id} value={p._id}>
-                            {p.name} - UGX {p.price?.toLocaleString()} (Stock: {p.quantity})
-                          </option>
-                        ))}
-                      </select>
+                        filterOption={(input, option) =>
+                          (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                        }
+                        options={availableProducts.map(p => ({
+                          value: p._id,
+                          label: `${p.name} - UGX ${p.price?.toLocaleString()} (Stock: ${p.quantity})`
+                        }))}
+                      />
                       <InputNumber
                         min={1}
                         value={item.quantity}

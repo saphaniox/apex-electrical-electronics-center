@@ -607,10 +607,14 @@ function Invoices() {
                         <div key={index} style={{ marginBottom: '16px', padding: '12px', border: '1px solid #f0f0f0', borderRadius: '8px', backgroundColor: '#fafafa', width: '100%' }}>
                           <Space style={{ width: '100%', marginBottom: 8 }} wrap>
                             <Select
-                              placeholder="Select product"
+                              showSearch
+                              placeholder="Search and select product"
                               value={item.product_id}
                               onChange={(value) => updateInvoiceLineItem(index, 'product_id', value)}
                               style={{ width: isMobile ? 150 : 250 }}
+                              filterOption={(input, option) =>
+                                (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                              }
                             >
                               {availableProducts.map(p => (
                                 <Select.Option key={p._id} value={p._id}>
