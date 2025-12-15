@@ -244,10 +244,11 @@ function Dashboard() {
           alignItems: 'center', 
           borderBottom: '1px solid #f0f0f0', 
           height: 'auto', 
-          minHeight: isMobile ? '56px' : '64px',
+          minHeight: isMobile ? '60px' : '64px',
           position: 'sticky',
           top: 0,
-          zIndex: 1000
+          zIndex: 1000,
+          overflow: 'visible'
         }}>
           {isMobile ? (
             <Tooltip title="Open menu">
@@ -284,15 +285,16 @@ function Dashboard() {
               placement="bottomRight"
               getPopupContainer={trigger => trigger.parentElement}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: isMobile ? '4px' : '0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: isMobile ? '6px' : '0' }}>
                 <Avatar 
-                  size={isMobile ? 44 : 40}
+                  size={isMobile ? 48 : 40}
                   icon={<UserOutlined />}
                   src={user?.profile_picture ? `${API_BASE_URL}/uploads/profiles/${user.profile_picture}` : null}
                   style={{ 
                     border: isMobile ? '3px solid #1890ff' : '1px solid #d9d9d9', 
                     cursor: 'pointer',
-                    boxShadow: isMobile ? '0 2px 12px rgba(24, 144, 255, 0.4)' : 'none'
+                    boxShadow: isMobile ? '0 3px 15px rgba(24, 144, 255, 0.6)' : 'none',
+                    flexShrink: 0
                   }}
                 >
                   {!user?.profile_picture && user?.username?.charAt(0).toUpperCase()}
