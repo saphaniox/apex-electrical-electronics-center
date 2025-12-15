@@ -15,6 +15,7 @@ import reportsRoutes from './routes/reports.js';
 import usersRoutes from './routes/users.js';
 import returnsRoutes from './routes/returns.js';
 import backupRoutes from './routes/backup.js';
+import expensesRoutes from './routes/expenses.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -83,6 +84,7 @@ async function initAndStart() {
   app.use('/api/users', usersRoutes);
   app.use('/api/returns', returnsRoutes);
   app.use('/api/backup', backupRoutes);
+  app.use('/api/expenses', expensesRoutes);
 
   // Error handling
   app.use(errorHandler);

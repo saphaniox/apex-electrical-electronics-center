@@ -463,6 +463,31 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
 
     const overallMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100) : 0;
 
+    // Get expenses for the same period
+    const expensesCollection = db.collection('expenses');
+    const expensesMatchStage = {};
+    
+    if (period !== 'all') {
+      expensesMatchStage.date = { $gte: startDate };
+    }
+
+    const expensesData = await expensesCollection.aggregate([
+      { $match: expensesMatchStage },
+      {
+        $group: {
+          _id: null,
+          total_expenses: { $sum: '$amount' },
+          count: { $sum: 1 }
+        }
+      }
+    ]).toArray();
+
+    const totalExpenses = expensesData[0]?.total_expenses || 0;
+    const expensesCount = expensesData[0]?.count || 0;
+
+    // Calculate net profit (gross profit - expenses)
+    const netProfit = totalProfit - totalExpenses;
+
     // Get profit margin distribution
     const highMargin = salesData.filter(p => p.profit_margin > 30).length;
     const mediumMargin = salesData.filter(p => p.profit_margin > 15 && p.profit_margin <= 30).length;
@@ -493,7 +518,10 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
       period_label: periodLabels[period] || "All Time",
       total_revenue: Math.round(totalRevenue),
       total_cost: Math.round(totalCost),
-      total_profit: Math.round(totalProfit),
+      gross_profit: Math.round(totalProfit),
+      total_expenses: Math.round(totalExpenses),
+      expenses_count: expensesCount,
+      net_profit: Math.round(netProfit),
       overall_margin: parseFloat(overallMargin.toFixed(2)),
       top_profitable_products: topProfitableProducts,
       margin_distribution: {

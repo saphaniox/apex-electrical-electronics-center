@@ -433,8 +433,8 @@ function Analytics() {
               <Col xs={12} sm={12} md={6}>
                 <Card bodyStyle={{ padding: window.innerWidth <= 768 ? '16px' : '24px' }}>
                   <Statistic
-                    title="Total Profit"
-                    value={profitData.total_profit}
+                    title="Gross Profit"
+                    value={profitData.gross_profit}
                     precision={0}
                     valueStyle={{ color: '#1890ff', fontSize: window.innerWidth <= 768 ? '18px' : '22px' }}
                     prefix="UGX"
@@ -450,6 +450,55 @@ function Analytics() {
                     valueStyle={{ color: '#722ed1', fontSize: window.innerWidth <= 768 ? '18px' : '22px' }}
                     suffix="%"
                   />
+                </Card>
+              </Col>
+            </Row>
+
+            <Row gutter={{ xs: 8, sm: 12, md: 16 }} style={{ marginTop: window.innerWidth <= 768 ? 12 : 16 }}>
+              <Col xs={12} sm={12} md={8}>
+                <Card bodyStyle={{ padding: window.innerWidth <= 768 ? '16px' : '24px' }}>
+                  <Statistic
+                    title="Total Expenses"
+                    value={profitData.total_expenses || 0}
+                    precision={0}
+                    valueStyle={{ color: '#fa8c16', fontSize: window.innerWidth <= 768 ? '18px' : '22px' }}
+                    prefix="UGX"
+                  />
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    {profitData.expenses_count || 0} records
+                  </Text>
+                </Card>
+              </Col>
+              <Col xs={12} sm={12} md={8}>
+                <Card bodyStyle={{ padding: window.innerWidth <= 768 ? '16px' : '24px' }}>
+                  <Statistic
+                    title="Net Profit"
+                    value={profitData.net_profit}
+                    precision={0}
+                    valueStyle={{ 
+                      color: profitData.net_profit >= 0 ? '#52c41a' : '#ff4d4f', 
+                      fontSize: window.innerWidth <= 768 ? '18px' : '22px',
+                      fontWeight: 'bold'
+                    }}
+                    prefix="UGX"
+                  />
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    Profit after expenses
+                  </Text>
+                </Card>
+              </Col>
+              <Col xs={24} sm={24} md={8}>
+                <Card bodyStyle={{ padding: window.innerWidth <= 768 ? '16px' : '24px' }}>
+                  <Statistic
+                    title="Expense Ratio"
+                    value={profitData.gross_profit > 0 ? ((profitData.total_expenses / profitData.gross_profit) * 100).toFixed(2) : 0}
+                    precision={2}
+                    valueStyle={{ color: '#fa8c16', fontSize: window.innerWidth <= 768 ? '18px' : '22px' }}
+                    suffix="%"
+                  />
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    Expenses vs Gross Profit
+                  </Text>
                 </Card>
               </Col>
             </Row>
