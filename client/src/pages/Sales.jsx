@@ -16,7 +16,7 @@ function Sales() {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [saleOrderForm] = Form.useForm()
   const [selectedOrderItems, setSelectedOrderItems] = useState([])
-  const [tablePageInfo, setTablePageInfo] = useState({ page: 1, limit: 10, total: 0 })
+  const [tablePageInfo, setTablePageInfo] = useState({ page: 1, limit: 50, total: 0 })
   const [editingOrderId, setEditingOrderId] = useState(null)
   const [originalStatus, setOriginalStatus] = useState(null)
   const [auditDrawerVisible, setAuditDrawerVisible] = useState(false)
@@ -510,10 +510,11 @@ function Sales() {
               pageSize: tablePageInfo.limit,
               total: getFilteredSalesOrders().length,
               current: tablePageInfo.page,
-              onChange: (page) => setTablePageInfo(prev => ({ ...prev, page })),
+              onChange: (page, pageSize) => setTablePageInfo(prev => ({ ...prev, page, limit: pageSize || prev.limit })),
               showTotal: (total) => `Total ${total} orders`,
               simple: isSmallMobile,
-              showSizeChanger: !isMobile
+              showSizeChanger: !isMobile,
+              pageSizeOptions: ['10', '20', '50', '100']
             }}
           />
         )}
