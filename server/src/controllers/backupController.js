@@ -1,18 +1,14 @@
 import { getDatabase } from '../db/connection.js';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-const execAsync = promisify(exec);
+import archiver from 'archiver';
+import extract from 'extract-zip';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const BACKUP_DIR = path.join(__dirname, '../../backups');
-const DB_NAME = process.env.DB_NAME || 'stock_sales_system';
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 
 // Ensure backup directory exists
 if (!fs.existsSync(BACKUP_DIR)) {
@@ -22,23 +18,54 @@ if (!fs.existsSync(BACKUP_DIR)) {
 // Create database backup
 export async function createBackup(req, res) {
   try {
+    const db = getDatabase();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupName = `backup_${timestamp}`;
     const backupPath = path.join(BACKUP_DIR, backupName);
 
-    // Use mongodump to create backup
-    const command = `mongodump --uri="${MONGO_URI}" --db="${DB_NAME}" --out="${backupPath}"`;
-    
-    await execAsync(command);
+    // Create backup directory
+    if (!fs.existsSync(backupPath)) {
+      fs.mkdirSync(backupPath, { recursive: true });
+    }
+
+    // Get all collections
+    const collections = await db.listCollections().toArray();
+    const collectionNames = collections.map(c => c.name);
+
+    let totalDocuments = 0;
+    let totalSize = 0;
+
+    // Export each collection
+    for (const collectionName of collectionNames) {
+      const collection = db.collection(collectionName);
+      const documents = await collection.find({}).toArray();
+      
+      const collectionData = {
+        collection: collectionName,
+        documents: documents,
+        count: documents.length,
+        exportedAt: new Date()
+      };
+
+      const jsonData = JSON.stringify(collectionData, null, 2);
+      const filePath = path.join(backupPath, `${collectionName}.json`);
+      fs.writeFileSync(filePath, jsonData);
+
+      totalDocuments += documents.length;
+      totalSize += Buffer.byteLength(jsonData);
+    }
 
     // Create metadata file
     const metadata = {
       backup_name: backupName,
-      database: DB_NAME,
+      database: db.databaseName,
       created_at: new Date(),
       created_by_user_id: req.user.id,
       created_by_username: req.user.username,
-      size: getDirectorySize(backupPath)
+      collections: collectionNames,
+      total_documents: totalDocuments,
+      size: totalSize,
+      formatted_size: formatBytes(totalSize)
     };
 
     fs.writeFileSync(
@@ -67,7 +94,10 @@ export async function getBackups(req, res) {
     }
 
     const backups = fs.readdirSync(BACKUP_DIR)
-      .filter(file => fs.statSync(path.join(BACKUP_DIR, file)).isDirectory())
+      .filter(file => {
+        const fullPath = path.join(BACKUP_DIR, file);
+        return fs.statSync(fullPath).isDirectory();
+      })
       .map(backupName => {
         const metadataPath = path.join(BACKUP_DIR, backupName, 'metadata.json');
         
@@ -80,10 +110,11 @@ export async function getBackups(req, res) {
         const stats = fs.statSync(path.join(BACKUP_DIR, backupName));
         return {
           backup_name: backupName,
-          database: DB_NAME,
+          database: 'Unknown',
           created_at: stats.birthtime,
           created_by_username: 'Unknown',
-          size: getDirectorySize(path.join(BACKUP_DIR, backupName))
+          size: getDirectorySize(path.join(BACKUP_DIR, backupName)),
+          formatted_size: formatBytes(getDirectorySize(path.join(BACKUP_DIR, backupName)))
         };
       })
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -100,22 +131,60 @@ export async function restoreBackup(req, res) {
   const { backup_name } = req.body;
 
   try {
-    const backupPath = path.join(BACKUP_DIR, backup_name, DB_NAME);
+    const db = getDatabase();
+    const backupPath = path.join(BACKUP_DIR, backup_name);
 
     if (!fs.existsSync(backupPath)) {
       return res.status(404).json({ error: 'Backup not found' });
     }
 
-    // Use mongorestore to restore backup
-    const command = `mongorestore --uri="${MONGO_URI}" --db="${DB_NAME}" --drop "${backupPath}"`;
+    // Read metadata
+    const metadataPath = path.join(backupPath, 'metadata.json');
+    if (!fs.existsSync(metadataPath)) {
+      return res.status(400).json({ error: 'Invalid backup: metadata not found' });
+    }
+
+    const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
     
-    await execAsync(command);
+    let restoredCollections = 0;
+    let restoredDocuments = 0;
+
+    // Restore each collection
+    for (const collectionName of metadata.collections) {
+      const collectionFile = path.join(backupPath, `${collectionName}.json`);
+      
+      if (!fs.existsSync(collectionFile)) {
+        console.warn(`Collection file not found: ${collectionName}.json`);
+        continue;
+      }
+
+      const collectionData = JSON.parse(fs.readFileSync(collectionFile, 'utf8'));
+      const collection = db.collection(collectionName);
+
+      // Drop existing collection
+      try {
+        await collection.drop();
+      } catch (error) {
+        // Collection might not exist, that's okay
+        console.log(`Collection ${collectionName} doesn't exist, creating new one`);
+      }
+
+      // Insert documents
+      if (collectionData.documents && collectionData.documents.length > 0) {
+        await collection.insertMany(collectionData.documents);
+        restoredDocuments += collectionData.documents.length;
+      }
+
+      restoredCollections++;
+    }
 
     res.json({
       message: 'Database restored successfully',
       backup_name,
       restored_at: new Date(),
-      restored_by: req.user.username
+      restored_by: req.user.username,
+      collections_restored: restoredCollections,
+      documents_restored: restoredDocuments
     });
   } catch (error) {
     console.error('Restore error:', error);
@@ -137,17 +206,24 @@ export async function downloadBackup(req, res) {
       return res.status(404).json({ error: 'Backup not found' });
     }
 
-    // Create zip archive
-    const archiver = require('archiver');
     const zipName = `${backup_name}.zip`;
     
     res.attachment(zipName);
     
     const archive = archiver('zip', { zlib: { level: 9 } });
+    
+    archive.on('error', (err) => {
+      throw err;
+    });
+
     archive.pipe(res);
     archive.directory(backupPath, false);
     await archive.finalize();
   } catch (error) {
+    console.error('Download backup error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
     console.error('Download backup error:', error);
     res.status(500).json({ error: error.message });
   }
@@ -197,4 +273,17 @@ function getDirectorySize(dirPath) {
   } catch (error) {
     return 0;
   }
+}
+
+// Helper function to format bytes
+function formatBytes(bytes, decimals = 2) {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }

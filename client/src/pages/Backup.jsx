@@ -22,7 +22,7 @@ function Backup() {
     try {
       setIsLoading(true)
       const response = await backupAPI.getAll()
-      setBackupList(response.data.data || [])
+      setBackupsList(response.data.data || [])
     } catch (error) {
       message.error('Unable to load backup list. Please refresh and try again.')
     } finally {
@@ -156,9 +156,9 @@ function Backup() {
     },
     {
       title: 'Size',
-      dataIndex: 'size',
-      key: 'size',
-      render: (size) => formatBytes(size),
+      dataIndex: 'formatted_size',
+      key: 'formatted_size',
+      render: (formattedSize, record) => formattedSize || formatBytes(record.size),
     },
     {
       title: 'Actions',
