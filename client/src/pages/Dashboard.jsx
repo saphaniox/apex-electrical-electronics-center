@@ -298,7 +298,7 @@ function Dashboard() {
                 <Avatar 
                   size={isMobile ? 48 : 40}
                   icon={<UserOutlined />}
-                  src={user?.profile_picture ? `${API_BASE_URL}/uploads/profiles/${user.profile_picture}` : null}
+                  src={user?.profile_picture && user.profile_picture !== 'profile-picture' ? `${API_BASE_URL}/uploads/profiles/${user.profile_picture}` : undefined}
                   style={{ 
                     border: isMobile ? '3px solid #1890ff' : '1px solid #d9d9d9', 
                     cursor: 'pointer',
@@ -306,7 +306,7 @@ function Dashboard() {
                     flexShrink: 0
                   }}
                 >
-                  {!user?.profile_picture && user?.username?.charAt(0).toUpperCase()}
+                  {(!user?.profile_picture || user.profile_picture === 'profile-picture') && user?.username?.charAt(0).toUpperCase()}
                 </Avatar>
                 {!isMobile && <span>{user?.username}</span>}
               </div>
