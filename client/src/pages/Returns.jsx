@@ -127,9 +127,9 @@ function Returns() {
       okType: 'primary',
       onOk: async () => {
         try {
-          await returnsAPI.approve(returnId)
+          await returnsAPI.approve(id)
           message.success('✅ Return approved! Inventory has been restored automatically.')
-          fetchAllReturns()
+          fetchReturns()
         } catch (error) {
           message.error(error.response?.data?.error || 'Unable to approve return. Please try again.')
         }
