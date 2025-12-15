@@ -3,21 +3,49 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import archiver from 'archiver';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const BACKUP_DIR = path.join(__dirname, '../../backups');
+// Use /tmp directory on production (Render) for ephemeral storage
+// Use local backups directory for development
+const BACKUP_DIR = process.env.NODE_ENV === 'production' 
+  ? path.join(os.tmpdir(), 'backups')
+  : path.join(__dirname, '../../backups');
 
 // Ensure backup directory exists
-if (!fs.existsSync(BACKUP_DIR)) {
-  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(BACKUP_DIR)) {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    console.log('Backup directory created:', BACKUP_DIR);
+  }
+} catch (error) {
+  console.error('Failed to create backup directory:', error.message);
 }
 
 // Create database backup
 export async function createBackup(req, res) {
   try {
     console.log('Starting backup creation...');
+    console.log('Backup directory:', BACKUP_DIR);
+    
+    // Ensure backup directory exists and is writable
+    if (!fs.existsSync(BACKUP_DIR)) {
+      console.log('Creating backup directory...');
+      fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    }
+    
+    // Test write permissions
+    const testFile = path.join(BACKUP_DIR, '.write_test');
+    try {
+      fs.writeFileSync(testFile, 'test');
+      fs.unlinkSync(testFile);
+      console.log('Write permissions verified');
+    } catch (error) {
+      throw new Error(`No write permission to backup directory: ${error.message}`);
+    }
+    
     const db = getDatabase();
     
     if (!db) {
