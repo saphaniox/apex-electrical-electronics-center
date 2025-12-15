@@ -1,5 +1,5 @@
 import express from 'express'
-import { authenticateToken } from '../middleware/auth.js'
+import { authenticate } from '../middleware/auth.js'
 import {
   createExpense,
   getAllExpenses,
@@ -11,7 +11,7 @@ import {
 const router = express.Router()
 
 // All routes require authentication
-router.use(authenticateToken)
+router.use(authenticate)
 
 // Create new expense
 router.post('/', createExpense)
