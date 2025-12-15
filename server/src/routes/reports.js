@@ -223,6 +223,47 @@ router.get('/analytics/daily', authenticate, async (req, res) => {
       }
     });
 
+    // Calculate profit from sales orders for today
+    const profitStats = await salesOrdersCollection.aggregate([
+      { 
+        $match: { 
+          order_date: { 
+            $gte: today, 
+            $lt: tomorrow 
+          },
+          status: { $in: ['pending', 'completed'] }
+        } 
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: null,
+          gross_profit: { $sum: '$items.item_profit' }
+        }
+      }
+    ]).toArray();
+
+    const grossProfit = profitStats[0]?.gross_profit || 0;
+
+    // Get today's expenses
+    const expensesCollection = db.collection('expenses');
+    const expensesStats = await expensesCollection.aggregate([
+      {
+        $match: {
+          date: { $gte: today, $lt: tomorrow }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total_expenses: { $sum: '$amount' }
+        }
+      }
+    ]).toArray();
+
+    const totalExpenses = expensesStats[0]?.total_expenses || 0;
+    const netProfit = grossProfit - totalExpenses;
+
     res.json({
       period: 'daily',
       date: today.toISOString().split('T')[0],
@@ -231,6 +272,9 @@ router.get('/analytics/daily', authenticate, async (req, res) => {
       total_orders: totalOrders,
       avg_order_value_ugx: totalOrders > 0 ? Math.round(totalRevenueUGX / totalOrders) : 0,
       avg_order_value_usd: totalOrders > 0 ? Math.round((totalRevenueUSD / totalOrders) * 100) / 100 : 0,
+      gross_profit: Math.round(grossProfit),
+      total_expenses: Math.round(totalExpenses),
+      net_profit: Math.round(netProfit),
       exchange_rate: EXCHANGE_RATE
     });
   } catch (error) {

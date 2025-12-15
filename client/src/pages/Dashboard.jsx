@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Layout, Menu, Button, Avatar, Dropdown, Tooltip, Drawer } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { ShoppingOutlined, FileOutlined, DashboardOutlined, LogoutOutlined, UserOutlined, MenuFoldOutlined, MenuUnfoldOutlined, TeamOutlined, LineChartOutlined, BugOutlined, DatabaseOutlined, DollarOutlined } from '@ant-design/icons'
+import { ShoppingOutlined, FileOutlined, DashboardOutlined, LogoutOutlined, UserOutlined, MenuFoldOutlined, MenuUnfoldOutlined, TeamOutlined, LineChartOutlined, BugOutlined, DatabaseOutlined, DollarOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 import { useAuthStore } from '../store/authStore'
 import DashboardContent from '../components/DashboardContent'
 import Footer from '../components/Footer'
@@ -16,6 +16,7 @@ import Profile from './Profile'
 import Analytics from './Analytics'
 import Debug from './Debug'
 import Expenses from './Expenses'
+import Help from './Help'
 import { appConfig } from '../styles/theme'
 
 const { Header, Sider, Content } = Layout
@@ -109,6 +110,12 @@ function Dashboard() {
       onClick: () => setCurrentPage('expenses')
     },
     {
+      key: 'help',
+      icon: <QuestionCircleOutlined />,
+      label: 'Help & Docs',
+      onClick: () => setCurrentPage('help')
+    },
+    {
       key: 'users',
       icon: <TeamOutlined />,
       label: 'Users',
@@ -187,6 +194,8 @@ function Dashboard() {
         return <Returns />
       case 'expenses':
         return <Expenses />
+      case 'help':
+        return <Help />
       case 'users':
         return <Users />
       case 'backup':

@@ -8,6 +8,7 @@ import { useAuthStore } from '../store/authStore'
 function DashboardContent({ page, onNavigate }) {
   const { user } = useAuthStore()
   const [stats, setStats] = useState(null)
+  const [dailyStats, setDailyStats] = useState(null)
   const [lowStockItems, setLowStockItems] = useState([])
   const [isLoadingChart, setIsLoadingChart] = useState(false)
   const [isLoadingCards, setIsLoadingCards] = useState(true)
@@ -26,15 +27,17 @@ function DashboardContent({ page, onNavigate }) {
     setIsLoadingCards(true)
     setIsLoadingChart(true)
     try {
-      const [summaryRes, alertsRes, chartRes] = await Promise.all([
+      const [summaryRes, alertsRes, chartRes, dailyRes] = await Promise.all([
         reportsAPI.salesSummary(),
         reportsAPI.lowStock(),
-        reportsAPI.salesTrend()
+        reportsAPI.salesTrend(),
+        reportsAPI.dailyAnalytics()
       ])
       
       setStats(summaryRes.data)
       setLowStockItems(alertsRes.data.items || [])
       setTrendData(chartRes.data || [])
+      setDailyStats(dailyRes.data)
     } catch (error) {
       message.error('Failed to load dashboard metrics')
     } finally {
@@ -199,6 +202,65 @@ function DashboardContent({ page, onNavigate }) {
           </Col>
         </Row>
       </div>
+
+      {/* Today's Performance Section */}
+      {dailyStats && (
+        <div style={{ marginBottom: window.innerWidth <= 768 ? '20px' : '32px' }}>
+          <h2 style={{ 
+            fontSize: window.innerWidth <= 768 ? '16px' : '18px', 
+            fontWeight: '600', 
+            marginBottom: window.innerWidth <= 768 ? '12px' : '16px' 
+          }}>
+            📈 Today's Performance
+          </h2>
+          <Row gutter={[{ xs: 12, sm: 16, lg: 16 }, { xs: 12, sm: 16, lg: 16 }]}>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <MetricCard
+                title="Today's Revenue"
+                value={dailyStats.total_revenue_ugx || 0}
+                prefix="UGX "
+                icon={<DollarOutlined style={{ fontSize: '18px' }} />}
+                color="#1890ff"
+                tooltip="Total revenue from sales today"
+                loading={isLoadingCards}
+              />
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <MetricCard
+                title="Today's Gross Profit"
+                value={dailyStats.gross_profit || 0}
+                prefix="UGX "
+                icon={<BarChartOutlined style={{ fontSize: '18px' }} />}
+                color="#52c41a"
+                tooltip="Profit before expenses (Revenue - Cost of Goods)"
+                loading={isLoadingCards}
+              />
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <MetricCard
+                title="Today's Expenses"
+                value={dailyStats.total_expenses || 0}
+                prefix="UGX "
+                icon={<ShoppingOutlined style={{ fontSize: '18px' }} />}
+                color="#fa8c16"
+                tooltip="Total operational expenses incurred today"
+                loading={isLoadingCards}
+              />
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <MetricCard
+                title="Today's Net Profit"
+                value={dailyStats.net_profit || 0}
+                prefix="UGX "
+                icon={dailyStats.net_profit >= 0 ? <ArrowUpOutlined style={{ fontSize: '18px' }} /> : <ArrowDownOutlined style={{ fontSize: '18px' }} />}
+                color={dailyStats.net_profit >= 0 ? '#52c41a' : '#cf1322'}
+                tooltip="Actual profit after all expenses (Gross Profit - Expenses)"
+                loading={isLoadingCards}
+              />
+            </Col>
+          </Row>
+        </div>
+      )}
 
       {/* Sales Trend Section with Chart */}
       {chartData.length > 0 && (
