@@ -18,6 +18,7 @@ import Debug from './Debug'
 import Expenses from './Expenses'
 import Help from './Help'
 import { appConfig } from '../styles/theme'
+import logo from '../assets/logo.png'
 
 const { Header, Sider, Content } = Layout
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
@@ -297,6 +298,15 @@ function Dashboard() {
               />
             </Tooltip>
           )}
+          <img 
+            src={logo} 
+            alt="Apex Electrical & Electronics" 
+            style={{ 
+              height: isMobile ? '32px' : '40px',
+              marginLeft: isMobile ? '8px' : '16px',
+              objectFit: 'contain'
+            }} 
+          />
           <div className="user-section" style={{ 
             display: 'flex', 
             alignItems: 'center', 

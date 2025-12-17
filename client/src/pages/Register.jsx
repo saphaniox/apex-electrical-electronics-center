@@ -5,6 +5,7 @@ import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons'
 import { authAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import '../styles/auth.css'
+import logo from '../assets/logo.png'
 
 function Register() {
   const navigate = useNavigate()
@@ -38,8 +39,19 @@ function Register() {
     <div className="auth-wrapper">
       <div className="login-container">
         <Card className="login-box">
-          <h1>Apex Electricals & Electronics Center</h1>
-          <h3>Create Account</h3>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <img 
+              src={logo} 
+              alt="Apex Electrical & Electronics" 
+              style={{ 
+                height: '100px', 
+                marginBottom: '16px',
+                objectFit: 'contain'
+              }} 
+            />
+            <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1a1a1a', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Apex Electricals & Electronics Center</h1>
+            <h3 style={{ fontSize: '16px', color: '#666', margin: 0, fontWeight: '400' }}>Create Account</h3>
+          </div>
           
           <div className="login-form-container">
             <Form

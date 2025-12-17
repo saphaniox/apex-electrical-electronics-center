@@ -5,6 +5,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { authAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import '../styles/auth.css'
+import logo from '../assets/logo.png'
 
 function Login() {
   const navigate = useNavigate()
@@ -30,7 +31,15 @@ function Login() {
       <div className="login-container">
         <Card className="login-box">
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚡</div>
+            <img 
+              src={logo} 
+              alt="Apex Electrical & Electronics" 
+              style={{ 
+                height: '100px', 
+                marginBottom: '16px',
+                objectFit: 'contain'
+              }} 
+            />
             <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1a1a1a', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Apex Electricals & Electronics Center</h1>
             <p style={{ fontSize: '15px', color: '#666', margin: 0, fontWeight: '400' }}>Stock & Sales Tracking System</p>
           </div>

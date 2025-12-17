@@ -3,6 +3,15 @@
  * Provides functionality for printing tables, invoices, and exporting to PDF
  */
 
+import logo from '../assets/logo.png'
+
+/**
+ * Convert image to base64 for embedding in print documents
+ */
+function getLogoBase64() {
+  return logo;
+}
+
 /**
  * Print a table with formatted headers and data
  * Opens print dialog in browser
@@ -26,6 +35,14 @@ export function printTable(tableId, title = 'Document') {
           font-family: 'Arial', sans-serif;
           margin: 20px;
           color: #333;
+        }
+        .logo-header {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        .logo-header img {
+          height: 60px;
+          margin-bottom: 10px;
         }
         h1 {
           text-align: center;
@@ -75,6 +92,9 @@ export function printTable(tableId, title = 'Document') {
       </style>
     </head>
     <body>
+      <div class="logo-header">
+        <img src="${getLogoBase64()}" alt="Apex Logo" />
+      </div>
       <h1>${title}</h1>
       <div class="print-date">Generated: ${new Date().toLocaleString()}</div>
       ${table.outerHTML}
@@ -138,6 +158,12 @@ export function printInvoice(invoice) {
           margin-bottom: 30px;
           border-bottom: 2px solid #1890ff;
           padding-bottom: 20px;
+        }
+        .logo-container {
+          margin-bottom: 15px;
+        }
+        .logo-container img {
+          height: 80px;
         }
         .company-name {
           font-size: 24px;
@@ -235,6 +261,9 @@ export function printInvoice(invoice) {
     <body>
       <div class="invoice-container">
         <div class="header">
+          <div class="logo-container">
+            <img src="${getLogoBase64()}" alt="Apex Logo" />
+          </div>
           <div class="company-name">APEX ELECTRICAL & ELECTRONICS CENTER</div>
           <div class="company-info">Maya Nanziga</div>
           <div class="company-info">Tel: 0778 247 008 | 0758 705 803</div>
@@ -348,6 +377,12 @@ export function printSalesOrder(salesOrder) {
           border-bottom: 2px solid #52c41a;
           padding-bottom: 20px;
         }
+        .logo-container {
+          margin-bottom: 15px;
+        }
+        .logo-container img {
+          height: 80px;
+        }
         .company-name {
           font-size: 28px;
           font-weight: bold;
@@ -433,6 +468,9 @@ export function printSalesOrder(salesOrder) {
     <body>
       <div class="order-container">
         <div class="header">
+          <div class="logo-container">
+            <img src="${getLogoBase64()}" alt="Apex Logo" />
+          </div>
           <div class="company-name">APEX ELECTRICAL & ELECTRONICS CENTER</div>
           <div class="company-info">Maya Nanziga</div>
           <div class="company-info">Tel: 0778 247 008 | 0758 705 803</div>
