@@ -229,7 +229,16 @@ function Dashboard() {
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             transition: 'all 0.2s'
           }}>
-            <div style={{ fontSize: collapsed ? '24px' : '32px', marginBottom: collapsed ? '0' : '12px', transition: 'all 0.2s' }}>{appConfig.logo}</div>
+            <img 
+              src={logo} 
+              alt="Apex Logo" 
+              style={{ 
+                height: collapsed ? '40px' : '50px', 
+                marginBottom: collapsed ? '0' : '12px', 
+                transition: 'all 0.2s',
+                objectFit: 'contain'
+              }} 
+            />
             {!collapsed && (
               <h2 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '700', letterSpacing: '-0.2px', lineHeight: '1.3' }}>{appConfig.shopName}</h2>
             )}
@@ -243,7 +252,7 @@ function Dashboard() {
         <Drawer
           title={
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px' }}>
-              <span style={{ fontSize: '20px' }}>{appConfig.logo}</span>
+              <img src={logo} alt="Apex Logo" style={{ height: '30px', objectFit: 'contain' }} />
               <span style={{ fontWeight: '600' }}>{appConfig.shopName}</span>
             </div>
           }
@@ -251,13 +260,37 @@ function Dashboard() {
           onClose={() => setMobileDrawerVisible(false)}
           open={mobileDrawerVisible}
           width={Math.min(280, window.innerWidth * 0.8)}
-          bodyStyle={{ padding: 0 }}
+          bodyStyle={{ padding: 0, display: 'flex', flexDirection: 'column', height: '100%' }}
         >
           <Menu 
             theme="light" 
             mode="inline" 
             items={filteredMenuItems}
             onClick={() => setMobileDrawerVisible(false)}
+            style={{ flex: 1, borderRight: 0 }}
+          />
+          <Menu 
+            theme="light" 
+            mode="inline" 
+            items={[
+              {
+                key: 'profile',
+                icon: <UserOutlined />,
+                label: 'My Profile',
+                onClick: () => {
+                  setCurrentPage('profile')
+                  setMobileDrawerVisible(false)
+                }
+              },
+              {
+                key: 'logout',
+                icon: <LogoutOutlined />,
+                label: 'Logout',
+                onClick: handleLogout,
+                danger: true
+              }
+            ]}
+            style={{ borderTop: '1px solid #f0f0f0', borderRight: 0 }}
           />
         </Drawer>
       )}
