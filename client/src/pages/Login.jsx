@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Form, Input, Button, Card, message } from 'antd'
+import { Form, Input, Button, Card, message, Checkbox } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { authAPI } from '../services/api'
+import { wakeUpServer } from '../services/wakeupService'
 import { useAuthStore } from '../store/authStore'
 import '../styles/auth.css'
 import logo from '../assets/logo.png'
@@ -10,13 +11,46 @@ import logo from '../assets/logo.png'
 function Login() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [serverWaking, setServerWaking] = useState(true)
+  const [serverReady, setServerReady] = useState(false)
   const { setAuth } = useAuthStore()
+
+  // Wake up server on component mount (silently)
+  useEffect(() => {
+    const checkServer = async () => {
+      let attempts = 0
+      const maxAttempts = 6
+      
+      while (attempts < maxAttempts) {
+        const isReady = await wakeUpServer()
+        if (isReady) {
+          setServerReady(true)
+          break
+        }
+        attempts++
+        
+        if (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 3000))
+        }
+      }
+      
+      // Silent failure - server may still be waking, but allow user to try
+      setServerWaking(false)
+    }
+
+    checkServer()
+  }, [])
 
   const onFinish = async (values) => {
     setLoading(true)
     try {
+      // One more attempt to wake up if needed
+      if (!serverReady) {
+        await wakeUpServer()
+      }
+
       const response = await authAPI.login(values)
-      setAuth(response.data.user, response.data.token)
+      setAuth(response.data.user, response.data.token, response.data.refreshToken)
       message.success('Welcome back! Logging you in...')
       navigate('/dashboard')
     } catch (error) {
@@ -56,7 +90,7 @@ function Login() {
                 name="username"
                 rules={[{ required: true, message: 'Please enter your username' }]}
               >
-                <Input prefix={<UserOutlined />} placeholder="Username" />
+                <Input prefix={<UserOutlined />} placeholder="Username" disabled={serverWaking && loading} />
               </Form.Item>
 
               <Form.Item
@@ -64,12 +98,19 @@ function Login() {
                 name="password"
                 rules={[{ required: true, message: 'Please enter your password' }]}
               >
-                <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+                <Input.Password prefix={<LockOutlined />} placeholder="Password" disabled={serverWaking && loading} />
+              </Form.Item>
+
+              <Form.Item
+                name="rememberMe"
+                valuePropName="checked"
+              >
+                <Checkbox>Keep me logged in for 7 days</Checkbox>
               </Form.Item>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" block loading={loading}>
-                  Login
+                <Button type="primary" htmlType="submit" block loading={loading} disabled={serverWaking && !serverReady}>
+                  {serverWaking ? 'Waiting for server...' : 'Login'}
                 </Button>
               </Form.Item>
             </Form>

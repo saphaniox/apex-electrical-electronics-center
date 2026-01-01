@@ -4,7 +4,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const mongoUrl = process.env.MONGODB_URL || 'mongodb://localhost:27017/electronics_shop';
-const client = new MongoClient(mongoUrl);
+
+// MongoDB connection options with compression enabled
+const clientOptions = {
+  compressors: ['zstd', 'snappy', 'zlib'], // Use Zstandard first for best compression, fallback to snappy/zlib
+  zlibCompressionLevel: 6, // Compression level for zlib (1-9, where 9 is highest but slower)
+};
+
+const client = new MongoClient(mongoUrl, clientOptions);
 
 let db = null;
 

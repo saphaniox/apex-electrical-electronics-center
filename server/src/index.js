@@ -74,6 +74,15 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 async function initAndStart() {
   await initializeDatabase();
 
+  // Health check endpoint (for wake-up service)
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+
   // Routes
   app.use('/api/auth', authRoutes);
   app.use('/api/products', productsRoutes);

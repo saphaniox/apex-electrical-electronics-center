@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { wakeUpServer } from './wakeupService'
 
 // Use environment variable for API URL, fallback to localhost in development
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
@@ -6,6 +7,23 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const api = axios.create({
   baseURL: API_BASE_URL,
 })
+
+// Flag to prevent infinite refresh loops
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  isRefreshing = false;
+  failedQueue = [];
+};
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
@@ -19,12 +37,63 @@ api.interceptors.response.use(
   (response) => {
     return response
   },
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If request failed and server might be sleeping, attempt to wake it up
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || !error.response) {
+      console.log('⚠️ Connection error detected, attempting to wake server...');
+      await wakeUpServer();
+      // Retry the request after wake-up attempt
+      return api.request(error.config);
     }
+
+    // Handle 401 errors - try to refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch(err => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (refreshToken) {
+        try {
+          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+          const { token } = response.data;
+          
+          localStorage.setItem('token', token);
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          
+          processQueue(null, token);
+          return api(originalRequest);
+        } catch (err) {
+          // Refresh failed, clear auth and redirect to login
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/login';
+          processQueue(err, null);
+          return Promise.reject(err);
+        }
+      } else {
+        // No refresh token, redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+    }
+
     return Promise.reject(error)
   }
 )
@@ -32,6 +101,8 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  logout: () => api.post('/auth/logout'),
+  refreshToken: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
 }
 
 export const productsAPI = {
