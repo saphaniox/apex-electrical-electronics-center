@@ -11,11 +11,9 @@ import logo from '../assets/logo.png'
 function Login() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
-  const [serverWaking, setServerWaking] = useState(true)
-  const [serverReady, setServerReady] = useState(false)
   const { setAuth } = useAuthStore()
 
-  // Wake up server on component mount (silently)
+  // Wake up server on component mount (silently in background)
   useEffect(() => {
     const checkServer = async () => {
       let attempts = 0
@@ -24,7 +22,6 @@ function Login() {
       while (attempts < maxAttempts) {
         const isReady = await wakeUpServer()
         if (isReady) {
-          setServerReady(true)
           break
         }
         attempts++
@@ -33,9 +30,6 @@ function Login() {
           await new Promise(resolve => setTimeout(resolve, 3000))
         }
       }
-      
-      // Silent failure - server may still be waking, but allow user to try
-      setServerWaking(false)
     }
 
     checkServer()
@@ -44,10 +38,8 @@ function Login() {
   const onFinish = async (values) => {
     setLoading(true)
     try {
-      // One more attempt to wake up if needed
-      if (!serverReady) {
-        await wakeUpServer()
-      }
+      // Wake up server if needed (happens in background)
+      wakeUpServer()
 
       const response = await authAPI.login(values)
       setAuth(response.data.user, response.data.token, response.data.refreshToken)
@@ -90,7 +82,7 @@ function Login() {
                 name="username"
                 rules={[{ required: true, message: 'Please enter your username' }]}
               >
-                <Input prefix={<UserOutlined />} placeholder="Username" disabled={serverWaking && loading} />
+                <Input prefix={<UserOutlined />} placeholder="Username" />
               </Form.Item>
 
               <Form.Item
@@ -98,7 +90,7 @@ function Login() {
                 name="password"
                 rules={[{ required: true, message: 'Please enter your password' }]}
               >
-                <Input.Password prefix={<LockOutlined />} placeholder="Password" disabled={serverWaking && loading} />
+                <Input.Password prefix={<LockOutlined />} placeholder="Password" />
               </Form.Item>
 
               <Form.Item
@@ -109,8 +101,8 @@ function Login() {
               </Form.Item>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" block loading={loading} disabled={serverWaking && !serverReady}>
-                  {serverWaking ? 'Waiting for server...' : 'Login'}
+                <Button type="primary" htmlType="submit" block loading={loading}>
+                  Login
                 </Button>
               </Form.Item>
             </Form>

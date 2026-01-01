@@ -11,11 +11,9 @@ import logo from '../assets/logo.png'
 function Register() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
-  const [serverWaking, setServerWaking] = useState(true)
-  const [serverReady, setServerReady] = useState(false)
   const { setAuth } = useAuthStore()
 
-  // Wake up server on component mount (silently)
+  // Wake up server on component mount (silently in background)
   useEffect(() => {
     const checkServer = async () => {
       let attempts = 0
@@ -24,7 +22,6 @@ function Register() {
       while (attempts < maxAttempts) {
         const isReady = await wakeUpServer()
         if (isReady) {
-          setServerReady(true)
           break
         }
         attempts++
@@ -33,9 +30,6 @@ function Register() {
           await new Promise(resolve => setTimeout(resolve, 3000))
         }
       }
-      
-      // Silent failure - server may still be waking, but allow user to try
-      setServerWaking(false)
     }
 
     checkServer()
@@ -49,10 +43,8 @@ function Register() {
 
     setLoading(true)
     try {
-      // One more attempt to wake up if needed
-      if (!serverReady) {
-        await wakeUpServer()
-      }
+      // Wake up server if needed (happens in background)
+      wakeUpServer()
 
       const response = await authAPI.register({
         username: values.username,
@@ -99,7 +91,7 @@ function Register() {
                 name="username"
                 rules={[{ required: true, message: 'Please choose a username' }]}
               >
-                <Input prefix={<UserOutlined />} placeholder="Username" disabled={serverWaking && loading} />
+                <Input prefix={<UserOutlined />} placeholder="Username" />
               </Form.Item>
 
               <Form.Item
@@ -110,7 +102,7 @@ function Register() {
                   { type: 'email', message: 'Please enter a valid email address' }
                 ]}
               >
-                <Input prefix={<MailOutlined />} placeholder="Email" disabled={serverWaking && loading} />
+                <Input prefix={<MailOutlined />} placeholder="Email" />
               </Form.Item>
 
               <Form.Item
@@ -118,7 +110,7 @@ function Register() {
                 name="password"
                 rules={[{ required: true, message: 'Please create a password (at least 8 characters)' }]}
               >
-                <Input.Password prefix={<LockOutlined />} placeholder="Password" disabled={serverWaking && loading} />
+                <Input.Password prefix={<LockOutlined />} placeholder="Password" />
               </Form.Item>
 
               <Form.Item
@@ -126,12 +118,12 @@ function Register() {
                 name="confirmPassword"
                 rules={[{ required: true, message: 'Please confirm your password' }]}
               >
-                <Input.Password prefix={<LockOutlined />} placeholder="Confirm Password" disabled={serverWaking && loading} />
+                <Input.Password prefix={<LockOutlined />} placeholder="Confirm Password" />
               </Form.Item>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" block loading={loading} disabled={serverWaking && !serverReady}>
-                  {serverWaking ? 'Waiting for server...' : 'Register'}
+                <Button type="primary" htmlType="submit" block loading={loading}>
+                  Register
                 </Button>
               </Form.Item>
             </Form>
