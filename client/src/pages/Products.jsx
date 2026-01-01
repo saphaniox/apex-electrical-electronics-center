@@ -30,16 +30,16 @@ function Products() {
   useEffect(() => {
     fetchAllProducts()
     fetchProductDemand()
-  }, [tablePageInfo.page, searchQuery])
+  }, [searchQuery])
 
-  // Fetch all products with pagination and search filter
+  // Fetch all products without pagination
   const fetchAllProducts = async () => {
     try {
       setIsLoading(true)
-      const response = await productsAPI.getAll(tablePageInfo.page, tablePageInfo.limit, searchQuery)
+      const response = await productsAPI.getAll(1, 10000, searchQuery)
       const products = response.data.data || []
       setProductList(products)
-      setTablePageInfo(prev => ({ ...prev, total: response.data.pagination?.total || 0 }))
+      setTablePageInfo(prev => ({ ...prev, total: response.data.pagination?.total || products.length }))
       
       // Count low stock items
       const lowStock = products.filter(p => p.is_low_stock || p.quantity <= (p.low_stock_threshold || 10))
@@ -576,14 +576,12 @@ function Products() {
                   scroll={{ x: 'max-content' }}
                   size={isMobile ? 'small' : 'middle'}
                   pagination={{
-                    pageSize: tablePageInfo.limit,
+                    pageSize: 100,
                     total: tablePageInfo.total,
-                    current: tablePageInfo.page,
-                    onChange: (page, pageSize) => setTablePageInfo(prev => ({ ...prev, page, limit: pageSize || prev.limit })),
                     showTotal: (total) => `Total ${total} products`,
                     simple: isSmallMobile,
                     showSizeChanger: !isMobile,
-                    pageSizeOptions: ['10', '20', '50', '100']
+                    pageSizeOptions: ['50', '100', '200']
                   }}
                 />
               )

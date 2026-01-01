@@ -86,7 +86,7 @@ function Sales() {
   // Fetch all available products for order selection
   const fetchAllAvailableProducts = async () => {
     try {
-      const response = await productsAPI.getAll(1, 100)
+      const response = await productsAPI.getAll(1, 10000)
       setAvailableProducts(response.data.data || [])
     } catch (error) {
       message.error('Unable to load products. Please check your connection and try again.')

@@ -56,9 +56,6 @@ export async function getAllProducts(req, res) {
     const db = getDatabase();
     const productsCollection = db.collection('products');
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
     const search = req.query.search || '';
 
     // Build comprehensive search query
@@ -82,15 +79,11 @@ export async function getAllProducts(req, res) {
       }
     }
 
-    const [products, total] = await Promise.all([
-      productsCollection
-        .find(query)
-        .sort({ created_at: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
-      productsCollection.countDocuments(query)
-    ]);
+    // Fetch all products without pagination
+    const products = await productsCollection
+      .find(query)
+      .sort({ created_at: -1 })
+      .toArray();
 
     // Map database fields to API response format
     const mappedProducts = products.map(p => ({
@@ -107,10 +100,7 @@ export async function getAllProducts(req, res) {
     res.json({
       data: mappedProducts,
       pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+        total: products.length
       }
     });
   } catch (error) {
