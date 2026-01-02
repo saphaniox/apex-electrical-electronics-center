@@ -24,7 +24,7 @@ function Products() {
   const [activeFilters, setActiveFilters] = useState({})
 
   // Check if user can perform admin actions based on role
-  const canEdit = ['admin', 'manager'].includes(user?.role)
+  const canEdit = user?.role === 'admin'
   const canDelete = user?.role === 'admin'
 
   useEffect(() => {
