@@ -17,6 +17,8 @@ function Expenses() {
   const [tablePageInfo, setTablePageInfo] = useState({ page: 1, limit: 50, total: 0 })
   const [summary, setSummary] = useState({ totalExpenses: 0, totalCount: 0 })
 
+  const canEdit = user?.role === 'admin'
+
   useEffect(() => {
     fetchExpenses()
     fetchSummary()
@@ -201,31 +203,35 @@ function Expenses() {
       key: 'actions',
       render: (_, record) => (
         <Space size="small">
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => showModal(record)}
-          >
-            Edit
-          </Button>
-          <Popconfirm
-            title="Delete this expense?"
-            description="This action cannot be undone."
-            onConfirm={() => handleDelete(record._id)}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
+          {canEdit && (
             <Button
               type="link"
               size="small"
-              danger
-              icon={<DeleteOutlined />}
+              icon={<EditOutlined />}
+              onClick={() => showModal(record)}
             >
-              Delete
+              Edit
             </Button>
-          </Popconfirm>
+          )}
+          {canEdit && (
+            <Popconfirm
+              title="Delete this expense?"
+              description="This action cannot be undone."
+              onConfirm={() => handleDelete(record._id)}
+              okText="Delete"
+              cancelText="Cancel"
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                type="link"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                Delete
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       ),
       width: 160
@@ -272,14 +278,16 @@ function Expenses() {
       </Row>
 
       <div style={{ marginBottom: 16 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => showModal()}
-          size="large"
-        >
-          Add Expense
-        </Button>
+        {canEdit && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => showModal()}
+            size="large"
+          >
+            Add Expense
+          </Button>
+        )}
       </div>
 
       <Table

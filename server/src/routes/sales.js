@@ -5,10 +5,10 @@ import { createSalesOrder, getSalesOrders, getSalesOrder, updateSalesOrder, dele
 
 const router = express.Router();
 
-router.post('/', authenticate, validateSalesOrder, createSalesOrder);
+router.post('/', authenticate, authorize('admin'), validateSalesOrder, createSalesOrder);
 router.get('/', authenticate, getSalesOrders);
 router.get('/:id', authenticate, getSalesOrder);
-router.put('/:id', authenticate, authorize('admin', 'manager', 'sales'), updateSalesOrder);
+router.put('/:id', authenticate, authorize('admin'), updateSalesOrder);
 router.delete('/:id', authenticate, authorize('admin'), deleteSalesOrder);
 
 export default router;

@@ -293,6 +293,14 @@ function Products() {
       hidden: isSmallMobile
     },
     {
+      title: 'Cost Price',
+      dataIndex: 'cost_price',
+      key: 'cost_price',
+      hidden: isSmallMobile,
+      render: (cost_price) => `UGX ${cost_price?.toLocaleString() || 0}`,
+      tooltip: 'Price you paid to buy this product'
+    },
+    {
       title: 'Demand',
       key: 'demand',
       hidden: isMobile,
@@ -314,14 +322,14 @@ function Products() {
       ellipsis: true
     },
     {
-      title: 'Price',
+      title: 'Selling Price',
       dataIndex: 'price',
       key: 'price',
       render: (price) => `UGX ${price?.toLocaleString() || 0}`,
       width: isMobile ? '25%' : 'auto'
     },
     {
-      title: 'Profit',
+      title: 'Profit per Unit',
       dataIndex: 'profit',
       key: 'profit',
       hidden: isMobile,
@@ -330,7 +338,7 @@ function Products() {
         const margin = record.profit_margin || 0
         const color = margin > 30 ? '#52c41a' : margin > 15 ? '#faad14' : '#ff4d4f'
         return (
-          <Tooltip title={`Profit Margin: ${margin.toFixed(1)}%`}>
+          <Tooltip title={`Profit Margin: ${margin.toFixed(1)}% (Selling Price - Cost Price)`}>
             <span style={{ color, fontWeight: 500 }}>
               UGX {profitValue.toLocaleString()}
               <br />
@@ -725,9 +733,9 @@ function Products() {
             </Form.Item>
 
             <Form.Item
-              label="Price (UGX)"
+              label="Selling Price (UGX)"
               name="price"
-              rules={[{ required: true, message: 'Please enter price' }]}
+              rules={[{ required: true, message: 'Please enter selling price' }]}
             >
               <InputNumber
                 min={0}
@@ -739,7 +747,7 @@ function Products() {
             <Form.Item
               label="Cost Price (UGX)"
               name="cost_price"
-              tooltip="The cost you paid for this product (for profit calculation)"
+              tooltip="The amount you paid to buy this product (used to calculate profit)"
               rules={[{ required: true, message: 'Please enter cost price' }]}
             >
               <InputNumber

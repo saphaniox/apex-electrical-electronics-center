@@ -22,7 +22,7 @@ function Returns() {
   const [returnItems, setReturnItems] = useState([])
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0 })
 
-  const canApprove = ['admin', 'manager'].includes(user?.role)
+  const canApprove = user?.role === 'admin'
   const canDelete = user?.role === 'admin'
 
   useEffect(() => {

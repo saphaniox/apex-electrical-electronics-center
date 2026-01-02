@@ -24,8 +24,8 @@ function Invoices() {
   const [searchDrawerVisible, setSearchDrawerVisible] = useState(false)
   const [activeFilters, setActiveFilters] = useState({})
 
-  // Check if user can create invoices based on role
-  const canCreateInvoice = ['admin', 'manager', 'sales'].includes(user?.role)
+  // Check if user can create invoices based on role (admin only)
+  const canCreateInvoice = user?.role === 'admin'
 
   useEffect(() => {
     fetchAllInvoices()
