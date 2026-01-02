@@ -293,14 +293,6 @@ function Products() {
       hidden: isSmallMobile
     },
     {
-      title: 'Cost Price',
-      dataIndex: 'cost_price',
-      key: 'cost_price',
-      hidden: isSmallMobile,
-      render: (cost_price) => `UGX ${cost_price?.toLocaleString() || 0}`,
-      tooltip: 'Price you paid to buy this product'
-    },
-    {
       title: 'Demand',
       key: 'demand',
       hidden: isMobile,
@@ -320,6 +312,14 @@ function Products() {
       key: 'description',
       hidden: isMobile,
       ellipsis: true
+    },
+    {
+      title: 'Cost Price',
+      dataIndex: 'cost_price',
+      key: 'cost_price',
+      render: (cost_price) => `UGX ${(cost_price || 0)?.toLocaleString?.() || 0}`,
+      tooltip: 'Price you paid to buy this product',
+      width: isMobile ? '20%' : 'auto'
     },
     {
       title: 'Selling Price',
