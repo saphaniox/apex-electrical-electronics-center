@@ -83,6 +83,15 @@ async function initAndStart() {
     });
   });
 
+  // Start server-side keep-alive to prevent sleep on platforms like Render.com
+  // This ensures the server stays responsive even with infrequent requests
+  const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000; // 4 minutes
+  setInterval(() => {
+    const timestamp = new Date().toISOString();
+    console.log(`[KEEP-ALIVE] Server is active - ${timestamp} - Uptime: ${(process.uptime() / 60).toFixed(1)}m`);
+  }, KEEP_ALIVE_INTERVAL);
+  console.log('✅ Server keep-alive monitor started (4-minute intervals)');
+
   // Routes
   app.use('/api/auth', authRoutes);
   app.use('/api/products', productsRoutes);

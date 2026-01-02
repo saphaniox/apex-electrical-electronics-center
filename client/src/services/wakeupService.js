@@ -14,7 +14,7 @@ const SERVER_BASE_URL = API_BASE_URL.replace('/api', ''); // Remove /api to get 
 
 // Configuration
 const WAKEUP_TIMEOUT = 20000;           // 20 seconds per ping
-const KEEPALIVE_INTERVAL = 10 * 60 * 1000; // 10 minutes between pings
+const KEEPALIVE_INTERVAL = 5 * 60 * 1000; // 5 minutes between pings (to keep server awake)
 const INACTIVITY_THRESHOLD = 8 * 60 * 1000; // 8 minutes of inactivity before extra wake-up
 
 let keepAliveInterval = null;

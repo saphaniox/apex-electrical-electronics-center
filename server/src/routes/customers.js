@@ -5,11 +5,11 @@ import { createCustomer, getAllCustomers, getCustomer, updateCustomer, deleteCus
 
 const router = express.Router();
 
-router.post('/', authenticate, authorize('admin'), validateCustomer, createCustomer);
+router.post('/', authenticate, authorize('admin', 'manager'), validateCustomer, createCustomer);
 router.get('/', authenticate, getAllCustomers);
 router.get('/:id', authenticate, getCustomer);
 router.get('/:id/purchase-history', authenticate, getCustomerPurchaseHistory);
-router.put('/:id', authenticate, authorize('admin'), validateCustomer, updateCustomer);
+router.put('/:id', authenticate, authorize('admin', 'manager'), validateCustomer, updateCustomer);
 router.delete('/:id', authenticate, authorize('admin'), deleteCustomer);
 
 export default router;

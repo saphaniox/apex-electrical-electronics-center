@@ -42,7 +42,8 @@ function Login() {
       wakeUpServer()
 
       const response = await authAPI.login(values)
-      setAuth(response.data.user, response.data.token, response.data.refreshToken)
+      // Pass rememberMe flag to setAuth
+      setAuth(response.data.user, response.data.token, response.data.refreshToken, values.rememberMe)
       message.success('Welcome back! Logging you in...')
       navigate('/dashboard')
     } catch (error) {
