@@ -4,9 +4,9 @@ import { generateInvoice, getInvoices, updateInvoice, deleteInvoice } from '../c
 
 const router = express.Router();
 
-router.post('/generate', authenticate, authorize('admin'), generateInvoice);
+router.post('/generate', authenticate, authorize('admin', 'manager'), generateInvoice);
 router.get('/', authenticate, getInvoices);
-router.put('/:id', authenticate, authorize('admin'), updateInvoice);
+router.put('/:id', authenticate, authorize('admin', 'manager'), updateInvoice);
 router.delete('/:id', authenticate, authorize('admin'), deleteInvoice);
 
 export default router;
