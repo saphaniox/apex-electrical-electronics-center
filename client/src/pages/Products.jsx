@@ -22,6 +22,10 @@ function Products() {
   const [lowStockCount, setLowStockCount] = useState(0)
   const [searchDrawerVisible, setSearchDrawerVisible] = useState(false)
   const [activeFilters, setActiveFilters] = useState({})
+  const [stockModalVisible, setStockModalVisible] = useState(false)
+  const [selectedProductForStock, setSelectedProductForStock] = useState(null)
+  const [stockForm] = Form.useForm()
+  const [stockUpdating, setStockUpdating] = useState(false)
 
   // Check if user can perform admin actions based on role
   const canEdit = user?.role === 'admin'
@@ -163,6 +167,50 @@ function Products() {
         }
       }
     })
+  }
+
+  // Show stock modal for adding inventory
+  const showStockModal = (product) => {
+    setSelectedProductForStock(product)
+    stockForm.resetFields()
+    setStockModalVisible(true)
+  }
+
+  // Handle stock addition
+  const handleAddStock = async () => {
+    try {
+      const values = await stockForm.validateFields()
+      setStockUpdating(true)
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/products/${selectedProductForStock._id}/stock/add`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            quantity_to_add: parseInt(values.quantity_to_add)
+          })
+        }
+      )
+
+      const data = await response.json()
+
+      if (response.ok) {
+        message.success(`✅ Added ${values.quantity_to_add} units! New stock: ${data.new_quantity}`)
+        setStockModalVisible(false)
+        stockForm.resetFields()
+        fetchAllProducts() // Refresh the product list
+      } else {
+        message.error(data.error || 'Failed to update stock')
+      }
+    } catch (error) {
+      message.error('Unable to add stock. Please try again.')
+    } finally {
+      setStockUpdating(false)
+    }
   }
 
   // Export all products as CSV file
@@ -385,6 +433,17 @@ function Products() {
       width: isMobile ? '20%' : 'auto',
       render: (_, record) => (
         <Space size={isSmallMobile ? 0 : 'small'}>
+          <Tooltip title="Add Stock">
+            <Button
+              type="dashed"
+              size={isSmallMobile ? 'small' : 'middle'}
+              icon={<PlusOutlined />}
+              onClick={() => showStockModal(record)}
+              style={{ fontSize: isSmallMobile ? '10px' : '14px', padding: isSmallMobile ? '2px 4px' : '6px 16px' }}
+            >
+              {!isSmallMobile && 'Stock'}
+            </Button>
+          </Tooltip>
           <Tooltip title="Edit">
             <Button
               type="primary"
@@ -806,6 +865,54 @@ function Products() {
             }
           ]}
         />
+
+        <Modal
+          title={`Add Stock - ${selectedProductForStock?.name}`}
+          open={stockModalVisible}
+          onOk={handleAddStock}
+          onCancel={() => {
+            setStockModalVisible(false)
+            stockForm.resetFields()
+          }}
+          okText="Add Stock"
+          cancelText="Cancel"
+          confirmLoading={stockUpdating}
+        >
+          {selectedProductForStock && (
+            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+              <p><strong>Current Stock:</strong> {selectedProductForStock.quantity} units</p>
+              <p><strong>SKU:</strong> {selectedProductForStock.sku}</p>
+              <p><strong>Low Stock Threshold:</strong> {selectedProductForStock.low_stock_threshold} units</p>
+            </div>
+          )}
+          <Form
+            form={stockForm}
+            layout="vertical"
+          >
+            <Form.Item
+              label="Quantity to Add"
+              name="quantity_to_add"
+              rules={[
+                { required: true, message: 'Please enter quantity to add' },
+                {
+                  validator: (_, value) => {
+                    if (!value || value <= 0) {
+                      return Promise.reject(new Error('Quantity must be greater than 0'))
+                    }
+                    return Promise.resolve()
+                  }
+                }
+              ]}
+            >
+              <InputNumber
+                min={1}
+                placeholder="Enter quantity"
+                style={{ width: '100%' }}
+                autoFocus
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
     </Spin>
   )

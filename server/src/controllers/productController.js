@@ -299,3 +299,53 @@ export async function getProductDemand(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
+export async function updateStock(req, res) {
+  const { id } = req.params;
+  const { quantity_to_add } = req.body;
+
+  try {
+    // Validate input
+    if (!quantity_to_add || typeof quantity_to_add !== 'number' || quantity_to_add <= 0) {
+      return res.status(400).json({ error: 'Quantity to add must be a positive number' });
+    }
+
+    const db = getDatabase();
+    const productsCollection = db.collection('products');
+
+    // Get current product
+    const product = await productsCollection.findOne({ _id: new ObjectId(id) });
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Update stock
+    const currentQuantity = product.quantity_in_stock || 0;
+    const newQuantity = currentQuantity + quantity_to_add;
+
+    const result = await productsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          quantity_in_stock: newQuantity,
+          updated_at: new Date()
+        }
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({ error: 'Failed to update stock' });
+    }
+
+    res.json({
+      message: 'Stock updated successfully',
+      product_id: id,
+      previous_quantity: currentQuantity,
+      added_quantity: quantity_to_add,
+      new_quantity: newQuantity
+    });
+  } catch (error) {
+    console.error('Update stock error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}

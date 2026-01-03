@@ -144,6 +144,18 @@ function Invoices() {
 
   // Update line item
   const updateInvoiceLineItem = (index, field, value) => {
+    // Check stock when updating quantity
+    if (field === 'quantity') {
+      const item = selectedInvoiceItems[index];
+      const selectedProduct = availableProducts.find(p => p._id === item.product_id);
+      const availableQty = selectedProduct?.quantity || 0;
+      
+      if (value > availableQty) {
+        message.error(`Cannot add ${value} units. Only ${availableQty} available in stock.`);
+        return;
+      }
+    }
+    
     const updatedItems = [...selectedInvoiceItems]
     updatedItems[index][field] = value
     setSelectedInvoiceItems(updatedItems)

@@ -607,6 +607,14 @@ function Sales() {
                         min={1}
                         value={item.quantity}
                         onChange={(value) => {
+                          const selectedProduct = availableProducts.find(p => p._id === item.product_id);
+                          const availableQty = selectedProduct?.quantity || 0;
+                          
+                          if (value > availableQty) {
+                            message.error(`Cannot add ${value} units. Only ${availableQty} available in stock.`);
+                            return;
+                          }
+                          
                           const newItems = [...selectedOrderItems]
                           newItems[index].quantity = value
                           setSelectedOrderItems(newItems)
