@@ -540,17 +540,15 @@ function Sales() {
             <Form.Item
               label="Customer Name"
               name="customer_name"
-              rules={[{ required: true, message: 'Please enter customer name' }]}
             >
-              <Input placeholder="e.g., Saphan" />
+              <Input placeholder="e.g., Saphan (Optional)" />
             </Form.Item>
 
             <Form.Item
               label="Customer Phone"
               name="customer_phone"
-              rules={[{ required: true, message: 'Please enter customer phone number' }]}
             >
-              <Input placeholder="e.g., 0700 000 000" />
+              <Input placeholder="e.g., 0700 000 000 (Optional)" />
             </Form.Item>
 
             <Form.Item

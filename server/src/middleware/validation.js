@@ -26,11 +26,12 @@ export function validateProduct(req, res, next) {
 export function validateSalesOrder(req, res, next) {
   const { customer_name, customer_phone, items } = req.body;
   
-  if (!customer_name || customer_name.trim().length < 2) {
+  // Customer name and phone are now optional
+  if (customer_name && customer_name.trim().length < 2) {
     return res.status(400).json({ error: 'Customer name must be at least 2 characters' });
   }
   
-  if (!customer_phone || customer_phone.trim().length < 5) {
+  if (customer_phone && customer_phone.trim().length < 5) {
     return res.status(400).json({ error: 'Customer phone must be at least 5 characters' });
   }
   
