@@ -30,6 +30,7 @@ function Products() {
   // Check if user can perform admin actions based on role
   const canEdit = user?.role === 'admin'
   const canDelete = user?.role === 'admin'
+  const canCreate = ['admin', 'manager'].includes(user?.role)
 
   useEffect(() => {
     fetchAllProducts()
@@ -550,7 +551,7 @@ function Products() {
                   </Button.Group>
                 </Tooltip>
               )}
-              {canEdit && (
+              {canCreate && (
                 <Tooltip title="Add new product">
                   <Button
                     type="primary"
