@@ -17,7 +17,7 @@ function Expenses() {
   const [tablePageInfo, setTablePageInfo] = useState({ page: 1, limit: 50, total: 0 })
   const [summary, setSummary] = useState({ totalExpenses: 0, totalCount: 0 })
 
-  const canEdit = user?.role === 'admin'
+  const canEdit = ['admin', 'manager'].includes(user?.role)
 
   useEffect(() => {
     fetchExpenses()

@@ -14,7 +14,7 @@ const router = express.Router()
 router.use(authenticate)
 
 // Create new expense - admin only
-router.post('/', authorize('admin'), createExpense)
+router.post('/', authorize('admin', 'manager'), createExpense);
 
 // Get all expenses with pagination
 router.get('/', getAllExpenses)
@@ -23,7 +23,7 @@ router.get('/', getAllExpenses)
 router.get('/summary', getExpensesSummary)
 
 // Update expense - admin only
-router.put('/:id', authorize('admin'), updateExpense)
+router.put('/:id', authorize('admin', 'manager'), updateExpense);
 
 // Delete expense - admin only
 router.delete('/:id', authorize('admin'), deleteExpense)

@@ -24,8 +24,8 @@ function Sales() {
   const [searchDrawerVisible, setSearchDrawerVisible] = useState(false)
   const [activeFilters, setActiveFilters] = useState({})
 
-  // Check if user can create/edit sales orders (admin only)
-  const canCreateOrder = user?.role === 'admin'
+  // Check if user can create/edit sales orders (admin/manager)
+  const canCreateOrder = ['admin', 'manager'].includes(user?.role)
 
   useEffect(() => {
     fetchAllSalesOrders()

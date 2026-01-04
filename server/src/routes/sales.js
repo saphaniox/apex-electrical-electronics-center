@@ -5,7 +5,7 @@ import { createSalesOrder, getSalesOrders, getSalesOrder, updateSalesOrder, dele
 
 const router = express.Router();
 
-router.post('/', authenticate, authorize('admin'), validateSalesOrder, createSalesOrder);
+router.post('/', authenticate, authorize('admin', 'manager'), validateSalesOrder, createSalesOrder);
 router.get('/', authenticate, getSalesOrders);
 router.get('/:id', authenticate, getSalesOrder);
 router.put('/:id', authenticate, authorize('admin'), updateSalesOrder);

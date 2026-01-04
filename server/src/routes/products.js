@@ -5,10 +5,10 @@ import { createProduct, getAllProducts, updateProduct, deleteProduct, getProduct
 
 const router = express.Router();
 
-router.post('/', authenticate, authorize('admin'), validateProduct, createProduct);
+router.post('/', authenticate, authorize('admin', 'manager'), validateProduct, createProduct);
 router.get('/', authenticate, getAllProducts);
 router.get('/demand', authenticate, getProductDemand);
-router.put('/:id', authenticate, authorize('admin'), validateProduct, updateProduct);
+router.put('/:id', authenticate, authorize('admin', 'manager'), validateProduct, updateProduct);
 router.put('/:id/stock/add', authenticate, authorize('admin', 'manager'), updateStock);
 router.delete('/:id', authenticate, authorize('admin'), deleteProduct);
 
