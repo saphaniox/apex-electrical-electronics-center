@@ -114,7 +114,8 @@ function Sales() {
     })
     setSelectedOrderItems(order.items.map(item => ({
       product_id: item.product_id,
-      quantity: item.quantity
+      quantity: item.quantity,
+      custom_price: item.custom_price_used ? item.unit_price : null
     })))
     setIsModalVisible(true)
   }

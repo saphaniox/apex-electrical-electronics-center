@@ -99,9 +99,17 @@ export async function createSalesOrder(req, res) {
 
     // Then update inventory for all items
     for (const update of productUpdates) {
+      const product = await productsCollection.findOne({ _id: update.product_id });
+      
+      // Update the correct quantity field based on what exists in the product
+      const updateField = product.quantity_in_stock !== undefined ? 'quantity_in_stock' : 'quantity';
+      
       await productsCollection.updateOne(
         { _id: update.product_id },
-        { $inc: { quantity_in_stock: -update.quantity } }
+        { 
+          $inc: { [updateField]: -update.quantity },
+          $set: { updated_at: new Date() }
+        }
       );
 
       // Log stock transaction
@@ -263,10 +271,26 @@ export async function updateSalesOrder(req, res) {
       });
     }
 
-    // If items are being updated, recalculate total
+    // If items are being updated, recalculate total and adjust inventory
     if (items && items.length > 0) {
       let totalAmount = 0;
       const orderItems = [];
+      const stockTransactionsCollection = db.collection('stock_transactions');
+
+      // First, restore inventory for old items
+      for (const oldItem of existingOrder.items) {
+        const oldProduct = await productsCollection.findOne({ _id: new ObjectId(oldItem.product_id) });
+        if (oldProduct) {
+          const updateField = oldProduct.quantity_in_stock !== undefined ? 'quantity_in_stock' : 'quantity';
+          await productsCollection.updateOne(
+            { _id: new ObjectId(oldItem.product_id) },
+            { 
+              $inc: { [updateField]: oldItem.quantity },
+              $set: { updated_at: new Date() }
+            }
+          );
+        }
+      }
 
       // Validate and calculate new items
       for (const item of items) {
@@ -276,6 +300,25 @@ export async function updateSalesOrder(req, res) {
 
         if (!product) {
           return res.status(404).json({ error: `Product not found: ${item.product_id}` });
+        }
+
+        // Check if sufficient stock available (after restoring old quantities)
+        const availableQty = product.quantity_in_stock !== undefined ? product.quantity_in_stock : product.quantity;
+        if (availableQty < item.quantity) {
+          // Rollback: restore old inventory state
+          for (const oldItem of existingOrder.items) {
+            const rollbackProduct = await productsCollection.findOne({ _id: new ObjectId(oldItem.product_id) });
+            if (rollbackProduct) {
+              const updateField = rollbackProduct.quantity_in_stock !== undefined ? 'quantity_in_stock' : 'quantity';
+              await productsCollection.updateOne(
+                { _id: new ObjectId(oldItem.product_id) },
+                { $inc: { [updateField]: -oldItem.quantity } }
+              );
+            }
+          }
+          return res.status(400).json({ 
+            error: `Insufficient stock for ${product.name}. Available: ${availableQty}, Requested: ${item.quantity}` 
+          });
         }
 
         // Use custom_price if provided, otherwise use product's default price
@@ -302,6 +345,25 @@ export async function updateSalesOrder(req, res) {
           item_total: itemTotal,
           item_profit: itemProfit,
           custom_price_used: item.custom_price !== undefined && item.custom_price !== null && item.custom_price > 0
+        });
+
+        // Deduct new quantity from inventory
+        const updateField = product.quantity_in_stock !== undefined ? 'quantity_in_stock' : 'quantity';
+        await productsCollection.updateOne(
+          { _id: new ObjectId(item.product_id) },
+          { 
+            $inc: { [updateField]: -item.quantity },
+            $set: { updated_at: new Date() }
+          }
+        );
+
+        // Log stock transaction
+        await stockTransactionsCollection.insertOne({
+          product_id: new ObjectId(item.product_id),
+          transaction_type: 'sale_update',
+          quantity: item.quantity,
+          sales_order_id: new ObjectId(id),
+          created_at: new Date()
         });
       }
 
