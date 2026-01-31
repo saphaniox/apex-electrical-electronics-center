@@ -419,17 +419,51 @@ export async function deleteSalesOrder(req, res) {
   try {
     const db = getDatabase();
     const salesOrdersCollection = db.collection('sales_orders');
+    const productsCollection = db.collection('products');
+    const stockTransactionsCollection = db.collection('stock_transactions');
 
-    // Check if order exists
+    // Check if order exists and get its items
     const order = await salesOrdersCollection.findOne({ _id: new ObjectId(id) });
     if (!order) {
       return res.status(404).json({ error: 'Sales order not found' });
     }
 
+    // Restore inventory for all items in the order
+    for (const item of order.items) {
+      const product = await productsCollection.findOne({ _id: new ObjectId(item.product_id) });
+      
+      if (product) {
+        // Determine which field to update
+        const updateField = product.quantity_in_stock !== undefined ? 'quantity_in_stock' : 'quantity';
+        
+        // Add the quantity back to inventory
+        await productsCollection.updateOne(
+          { _id: new ObjectId(item.product_id) },
+          { 
+            $inc: { [updateField]: item.quantity },
+            $set: { updated_at: new Date() }
+          }
+        );
+
+        // Log the restoration as a stock transaction
+        await stockTransactionsCollection.insertOne({
+          product_id: new ObjectId(item.product_id),
+          transaction_type: 'sale_deleted',
+          quantity: item.quantity,
+          sales_order_id: new ObjectId(id),
+          note: `Inventory restored from deleted order`,
+          created_at: new Date()
+        });
+      }
+    }
+
     // Delete the order
     await salesOrdersCollection.deleteOne({ _id: new ObjectId(id) });
 
-    res.json({ message: 'Sales order deleted successfully' });
+    res.json({ 
+      message: 'Sales order deleted successfully and inventory restored',
+      items_restored: order.items.length
+    });
   } catch (error) {
     console.error('Delete sales order error:', error);
     res.status(500).json({ error: error.message });
